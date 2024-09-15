@@ -33,14 +33,14 @@ document.addEventListener('DOMContentLoaded', function() {
     const sliderDots = document.querySelectorAll('.slider-dot');
     
     // Draggable text logic
-    function makeTextDraggable(textElement) {
-        textElement.addEventListener('mousedown', function(e) {
-            let shiftX = e.clientX - textElement.getBoundingClientRect().left;
-            let shiftY = e.clientY - textElement.getBoundingClientRect().top;
+    function makeTextBoxDraggable(textBox) {
+        textBox.addEventListener('mousedown', function(e) {
+            let shiftX = e.clientX - textBox.getBoundingClientRect().left;
+            let shiftY = e.clientY - textBox.getBoundingClientRect().top;
 
             function moveAt(pageX, pageY) {
-                textElement.style.left = pageX - shiftX + 'px';
-                textElement.style.top = pageY - shiftY + 'px';
+                textBox.style.left = pageX - shiftX + 'px';
+                textBox.style.top = pageY - shiftY + 'px';
             }
 
             function onMouseMove(e) {
@@ -54,13 +54,55 @@ document.addEventListener('DOMContentLoaded', function() {
             }, { once: true });
         });
 
-        textElement.addEventListener('click', function() {
-            currentTextElement = textElement;
+        textBox.querySelector('.draggable-text').addEventListener('click', function() {
+            currentTextElement = textBox.querySelector('.draggable-text');
             updateEditorInputs();
         });
     }
 
-    document.querySelectorAll('.draggable-text').forEach(makeTextDraggable);
+    function addTextBox(textContent = 'New Text') {
+        const textBox = document.createElement('div');
+        textBox.classList.add('text-box');
+
+        const newTextElement = document.createElement('div');
+        newTextElement.classList.add('draggable-text');
+        newTextElement.textContent = textContent;
+        textBox.appendChild(newTextElement);
+
+        const deleteButton = document.createElement('button');
+        deleteButton.classList.add('icon', 'delete');
+        deleteButton.innerHTML = '✖';
+        deleteButton.addEventListener('click', function() {
+            textBox.remove();
+        });
+        textBox.appendChild(deleteButton);
+
+        const copyButton = document.createElement('button');
+        copyButton.classList.add('icon', 'copy');
+        copyButton.innerHTML = '📋';
+        copyButton.addEventListener('click', function() {
+            navigator.clipboard.writeText(newTextElement.textContent);
+        });
+        textBox.appendChild(copyButton);
+
+        slides[activeSlide].appendChild(textBox);
+        makeTextBoxDraggable(textBox);
+        currentTextElement = newTextElement;
+        updateEditorInputs();
+        textInputContainer.style.display = 'block';
+        textInput.focus();
+    }
+
+    // Initialize hardcoded text boxes
+    document.querySelectorAll('.text-box').forEach(textBox => {
+        makeTextBoxDraggable(textBox);
+        textBox.querySelector('.delete').addEventListener('click', function() {
+            textBox.remove();
+        });
+        textBox.querySelector('.copy').addEventListener('click', function() {
+            navigator.clipboard.writeText(textBox.querySelector('.draggable-text').textContent);
+        });
+    });
 
     // Text input changes
     textInput.addEventListener('input', function() {
@@ -75,15 +117,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Add text button logic
     addTextButton.addEventListener('click', function() {
-        const newTextElement = document.createElement('div');
-        newTextElement.classList.add('draggable-text');
-        newTextElement.textContent = 'New Text';
-        slides[activeSlide].appendChild(newTextElement);
-        makeTextDraggable(newTextElement);
-        currentTextElement = newTextElement;
-        updateEditorInputs();
-        textInputContainer.style.display = 'block';
-        textInput.focus();
+        addTextBox();
     });
 
     // Font size change
