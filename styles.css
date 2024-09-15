@@ -46,6 +46,7 @@ html {
 .slide.active {
     display: block;
     width: 70%;
+    background-position-y: bottom;
     
 
 }
