@@ -108,7 +108,7 @@ html {
 
 .controls-container {
     position: absolute;
-    bottom: 10px;
+    bottom: 35px;
     left: 47%;
     transform: translateX(-50%);
     display: flex;
@@ -127,6 +127,7 @@ html {
     display: flex;
     align-items: center;
     justify-content: center;
+    margin-top: -20px;
 }
 
 .slider-dots {
@@ -134,7 +135,7 @@ html {
     gap: 5px;
     margin-left: 10px;
     margin-right: 10px;
-    margin-top: -15px;
+    margin-top: -17px;
 }
 
 .slider-dot {
@@ -159,6 +160,7 @@ html {
     align-items: center;
     justify-content: flex-start;
     border-left: 1px solid #e0e0e0;
+    margin: auto;
 }
 
 .editor-title {
