@@ -214,6 +214,11 @@ html {
     font-size: 16px;
 }
 
+.style-button.active{
+    background-color: #1e1c1c;
+    color: white;
+}
+
 .font-style-controls .style-button {
     padding: 5px 10px;
     background-color: #e0e0e0;
