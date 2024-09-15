@@ -39,6 +39,7 @@ html {
     background-position: center;
     position: absolute;
     display: none;
+    
 }
 
 .slide.active {
