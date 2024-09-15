@@ -11,11 +11,24 @@ document.addEventListener('DOMContentLoaded', function() {
     const draggableText = document.querySelectorAll('.draggable-text');
     const prevSlideButton = document.getElementById('prev-slide');
     const nextSlideButton = document.getElementById('next-slide');
+    const sliderDotsContainer = document.getElementById('slider-dots');
     
     let currentTextElement = draggableText[activeSlide];
     
     // Initial display of the first slide
     slides[activeSlide].classList.add('active');
+    
+    // Create slider dots
+    slides.forEach((slide, index) => {
+        const dot = document.createElement('div');
+        dot.classList.add('slider-dot');
+        if (index === activeSlide) {
+            dot.classList.add('active');
+        }
+        dot.addEventListener('click', () => showSlide(index));
+        sliderDotsContainer.appendChild(dot);
+    });
+    const sliderDots = document.querySelectorAll('.slider-dot');
     
     // Draggable text logic
     draggableText.forEach(textElement => {
@@ -93,8 +106,10 @@ document.addEventListener('DOMContentLoaded', function() {
     slides.forEach((slide, index) => {
         slide.addEventListener('click', function() {
             slides[activeSlide].classList.remove('active');
+            sliderDots[activeSlide].classList.remove('active');
             activeSlide = index;
             slides[activeSlide].classList.add('active');
+            sliderDots[activeSlide].classList.add('active');
             currentTextElement = draggableText[activeSlide];
             updateEditorInputs();
         });
@@ -106,8 +121,10 @@ document.addEventListener('DOMContentLoaded', function() {
     // Navigation logic
     function showSlide(index) {
         slides[activeSlide].classList.remove('active');
+        sliderDots[activeSlide].classList.remove('active');
         activeSlide = (index + slides.length) % slides.length;
         slides[activeSlide].classList.add('active');
+        sliderDots[activeSlide].classList.add('active');
         currentTextElement = draggableText[activeSlide];
         updateEditorInputs();
     }

@@ -27,8 +27,8 @@ html {
 }
 
 .carousel {
-    width: 90%;
-    height: 90%;
+    width: 80%;
+    height: 80%;
     position: relative;
 }
 
@@ -58,6 +58,60 @@ html {
     user-select: none;
     -webkit-user-select: none;
     /* Safari */
+}
+
+.controls-container {
+    position: absolute;
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    z-index: 10;
+}
+
+.carousel-button {
+    background-color: rgba(0, 0, 0, 0.5);
+    color: white;
+    border: none;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.carousel-button.left {
+    left: 10px;
+    
+}
+
+.carousel-button.right {
+    right: 10px;
+    
+}
+
+.slider-dots {
+    display: flex;
+    gap: 5px;
+    margin-left: 10px;
+    margin-right: 10px;
+    margin-top: -15px;
+    
+}
+
+.slider-dot {
+    width: 10px;
+    height: 10px;
+    background-color: rgba(0, 0, 0, 0.5);
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+.slider-dot.active {
+    background-color: rgba(0, 0, 0, 0.9);
 }
 
 .editor {
@@ -101,36 +155,4 @@ input[type="text"] {
 .font-size-controls span {
     width: 40px;
     text-align: center;
-}
-
-.carousel-button {
-    position: absolute;
-    bottom: 20px;
-    /* Position at the bottom */
-    transform: translateY(0);
-    /* Remove vertical centering */
-    background-color: rgba(0, 0, 0, 0.5);
-    color: white;
-    border: none;
-    width: 40px;
-    /* Make the button round */
-    height: 40px;
-    /* Make the button round */
-    border-radius: 50%;
-    /* Make the button round */
-    cursor: pointer;
-    z-index: 10;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.carousel-button.left {
-    left: 20px;
-    /* Adjust positioning */
-}
-
-.carousel-button.right {
-    right: 20px;
-    /* Adjust positioning */
 }
