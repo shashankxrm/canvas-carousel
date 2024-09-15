@@ -85,6 +85,27 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         textBox.appendChild(copyButton);
 
+        // Check if the middle of the slide is occupied
+        const middleOccupied = Array.from(slides[activeSlide].children).some(child => {
+            const rect = child.getBoundingClientRect();
+            const slideRect = slides[activeSlide].getBoundingClientRect();
+            return (
+                rect.left < slideRect.left + slideRect.width / 2 &&
+                rect.right > slideRect.left + slideRect.width / 2 &&
+                rect.top < slideRect.top + slideRect.height / 2 &&
+                rect.bottom > slideRect.top + slideRect.height / 2
+            );
+        });
+
+        if (!middleOccupied) {
+            textBox.style.left = '50%';
+            textBox.style.top = '50%';
+            textBox.style.transform = 'translate(-50%, -50%)';
+        } else {
+            textBox.style.left = '10px';
+            textBox.style.top = '10px';
+        }
+
         slides[activeSlide].appendChild(textBox);
         makeTextBoxDraggable(textBox);
         currentTextElement = newTextElement;
@@ -102,6 +123,11 @@ document.addEventListener('DOMContentLoaded', function() {
         textBox.querySelector('.copy').addEventListener('click', function() {
             navigator.clipboard.writeText(textBox.querySelector('.draggable-text').textContent);
         });
+
+        // Position hardcoded text boxes in the middle initially
+        textBox.style.left = '50%';
+        textBox.style.top = '50%';
+        textBox.style.transform = 'translate(-50%, -50%)';
     });
 
     // Text input changes
