@@ -15,7 +15,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const italicButton = document.getElementById('italic-button');
     const underlineButton = document.getElementById('underline-button');
     const strikethroughButton = document.getElementById('strikethrough-button');
-
     const colorInput = document.getElementById('color-input');
     const undoButton = document.getElementById('undo-button');
     const redoButton = document.getElementById('redo-button');
@@ -79,15 +78,17 @@ document.addEventListener('DOMContentLoaded', function() {
         textBox.querySelector('.draggable-text').addEventListener('click', function() {
             currentTextElement = textBox.querySelector('.draggable-text');
             updateEditorInputs();
+            selectTextBox(textBox);
         });
     }
+
     // Function to select a text box and deselect others
-        function selectTextBox(textBox) {
-            document.querySelectorAll('.text-box').forEach(box => {
-                box.classList.remove('selected');
-            });
-            textBox.classList.add('selected');
-        }
+    function selectTextBox(textBox) {
+        document.querySelectorAll('.text-box').forEach(box => {
+            box.classList.remove('selected');
+        });
+        textBox.classList.add('selected');
+    }
 
     function addTextBox(textContent = 'New Text') {
         const textBox = document.createElement('div');
@@ -198,61 +199,61 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-// Bold text
-boldButton.addEventListener('click', function() {
-    if (currentTextElement) {
-        if (currentTextElement.style.fontWeight === 'bold') {
-            currentTextElement.style.fontWeight = 'normal';
-            boldButton.classList.remove('active');
-        } else {
-            currentTextElement.style.fontWeight = 'bold';
-            boldButton.classList.add('active');
+    // Bold text
+    boldButton.addEventListener('click', function() {
+        if (currentTextElement) {
+            if (currentTextElement.style.fontWeight === 'bold') {
+                currentTextElement.style.fontWeight = 'normal';
+                boldButton.classList.remove('active');
+            } else {
+                currentTextElement.style.fontWeight = 'bold';
+                boldButton.classList.add('active');
+            }
+            saveState(); // Save state after bold change
         }
-        saveState(); // Save state after bold change
-    }
-});
+    });
 
-// Italic text
-italicButton.addEventListener('click', function() {
-    if (currentTextElement) {
-        if (currentTextElement.style.fontStyle === 'italic') {
-            currentTextElement.style.fontStyle = 'normal';
-            italicButton.classList.remove('active');
-        } else {
-            currentTextElement.style.fontStyle = 'italic';
-            italicButton.classList.add('active');
+    // Italic text
+    italicButton.addEventListener('click', function() {
+        if (currentTextElement) {
+            if (currentTextElement.style.fontStyle === 'italic') {
+                currentTextElement.style.fontStyle = 'normal';
+                italicButton.classList.remove('active');
+            } else {
+                currentTextElement.style.fontStyle = 'italic';
+                italicButton.classList.add('active');
+            }
+            saveState(); // Save state after italic change
         }
-        saveState(); // Save state after italic change
-    }
-});
+    });
 
-// Underline text
-underlineButton.addEventListener('click', function() {
-    if (currentTextElement) {
-        if (currentTextElement.style.textDecoration === 'underline') {
-            currentTextElement.style.textDecoration = 'none';
-            underlineButton.classList.remove('active');
-        } else {
-            currentTextElement.style.textDecoration = 'underline';
-            underlineButton.classList.add('active');
+    // Underline text
+    underlineButton.addEventListener('click', function() {
+        if (currentTextElement) {
+            if (currentTextElement.style.textDecoration === 'underline') {
+                currentTextElement.style.textDecoration = 'none';
+                underlineButton.classList.remove('active');
+            } else {
+                currentTextElement.style.textDecoration = 'underline';
+                underlineButton.classList.add('active');
+            }
+            saveState(); // Save state after underline change
         }
-        saveState(); // Save state after underline change
-    }
-});
+    });
 
-// Strikethrough text
-strikethroughButton.addEventListener('click', function() {
-    if (currentTextElement) {
-        if (currentTextElement.style.textDecoration === 'line-through') {
-            currentTextElement.style.textDecoration = 'none';
-            strikethroughButton.classList.remove('active');
-        } else {
-            currentTextElement.style.textDecoration = 'line-through';
-            strikethroughButton.classList.add('active');
+    // Strikethrough text
+    strikethroughButton.addEventListener('click', function() {
+        if (currentTextElement) {
+            if (currentTextElement.style.textDecoration === 'line-through') {
+                currentTextElement.style.textDecoration = 'none';
+                strikethroughButton.classList.remove('active');
+            } else {
+                currentTextElement.style.textDecoration = 'line-through';
+                strikethroughButton.classList.add('active');
+            }
+            saveState(); // Save state after strikethrough change
         }
-        saveState(); // Save state after strikethrough change
-    }
-});
+    });
 
     // Change text color
     colorInput.addEventListener('input', function() {
@@ -264,23 +265,23 @@ strikethroughButton.addEventListener('click', function() {
 
     // Update editor inputs based on the selected text element
     function updateEditorInputs() {
-    if (currentTextElement) {
-        textInput.value = currentTextElement.textContent;
-        fontSizeDisplay.textContent = parseInt(window.getComputedStyle(currentTextElement).fontSize);
-        fontSelect.value = window.getComputedStyle(currentTextElement).fontFamily.replace(/['"]/g, '');
-        colorInput.value = window.getComputedStyle(currentTextElement).color;
+        if (currentTextElement) {
+            textInput.value = currentTextElement.textContent;
+            fontSizeDisplay.textContent = parseInt(window.getComputedStyle(currentTextElement).fontSize);
+            fontSelect.value = window.getComputedStyle(currentTextElement).fontFamily.replace(/['"]/g, '');
+            colorInput.value = window.getComputedStyle(currentTextElement).color;
 
-        // Update button active states
-        boldButton.classList.toggle('active', currentTextElement.style.fontWeight === 'bold');
-        italicButton.classList.toggle('active', currentTextElement.style.fontStyle === 'italic');
-        underlineButton.classList.toggle('active', currentTextElement.style.textDecoration === 'underline');
-        strikethroughButton.classList.toggle('active', currentTextElement.style.textDecoration === 'line-through');
+            // Update button active states
+            boldButton.classList.toggle('active', currentTextElement.style.fontWeight === 'bold');
+            italicButton.classList.toggle('active', currentTextElement.style.fontStyle === 'italic');
+            underlineButton.classList.toggle('active', currentTextElement.style.textDecoration === 'underline');
+            strikethroughButton.classList.toggle('active', currentTextElement.style.textDecoration === 'line-through');
 
-        textInputContainer.style.display = 'block';
-    } else {
-        textInputContainer.style.display = 'none';
+            textInputContainer.style.display = 'block';
+        } else {
+            textInputContainer.style.display = 'none';
+        }
     }
-}
 
     // Select slide logic
     function showSlide(index) {

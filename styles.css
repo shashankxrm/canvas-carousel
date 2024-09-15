@@ -62,7 +62,7 @@ html {
     background-color: rgba(255, 255, 255, 0.7);
 }
 
-.text-box .icon {
+.text-box.selected .icon {
     position: absolute;
     top: -10px;
     cursor: pointer;
@@ -78,6 +78,23 @@ html {
     font-size: 12px;
     margin-left: 5px;
 }
+.text-box .icon {
+    position: absolute;
+    top: -10px;
+    cursor: pointer;
+    background-color: rgba(0, 0, 0, 0.5);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    margin-left: 5px;
+}
+
 
 .text-box .icon.delete {
     right: 30px;
