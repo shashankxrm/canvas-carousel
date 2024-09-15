@@ -14,8 +14,12 @@ document.addEventListener('DOMContentLoaded', function() {
     const boldButton = document.getElementById('bold-button');
     const italicButton = document.getElementById('italic-button');
     const colorInput = document.getElementById('color-input');
+    const undoButton = document.getElementById('undo-button');
+    const redoButton = document.getElementById('redo-button');
 
     let currentTextElement = null;
+    let undoStack = [];
+    let redoStack = [];
 
     // Initial display of the first slide
     slides[activeSlide].classList.add('active');
@@ -65,6 +69,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             document.addEventListener('mouseup', function() {
                 document.removeEventListener('mousemove', onMouseMove);
+                saveState(); // Save state after moving
             }, { once: true });
         });
 
@@ -88,6 +93,7 @@ document.addEventListener('DOMContentLoaded', function() {
         deleteButton.innerHTML = '✖';
         deleteButton.addEventListener('click', function() {
             textBox.remove();
+            saveState(); // Save state after deletion
         });
         textBox.appendChild(deleteButton);
 
@@ -112,6 +118,7 @@ document.addEventListener('DOMContentLoaded', function() {
         updateEditorInputs();
         textInputContainer.style.display = 'block';
         textInput.focus();
+        saveState(); // Save state after adding
     }
 
     // Initialize hardcoded text boxes
@@ -119,6 +126,7 @@ document.addEventListener('DOMContentLoaded', function() {
         makeTextBoxDraggable(textBox);
         textBox.querySelector('.delete').addEventListener('click', function() {
             textBox.remove();
+            saveState(); // Save state after deletion
         });
         textBox.querySelector('.copy').addEventListener('click', function() {
             navigator.clipboard.writeText(textBox.querySelector('.draggable-text').textContent);
@@ -134,6 +142,7 @@ document.addEventListener('DOMContentLoaded', function() {
     textInput.addEventListener('input', function() {
         if (currentTextElement) {
             currentTextElement.textContent = textInput.value;
+            saveState(); // Save state after text change
         }
     });
 
@@ -154,6 +163,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 fontSize--;
                 fontSizeDisplay.textContent = fontSize;
                 currentTextElement.style.fontSize = fontSize + 'px';
+                saveState(); // Save state after font size change
             }
         }
     });
@@ -165,6 +175,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 fontSize++;
                 fontSizeDisplay.textContent = fontSize;
                 currentTextElement.style.fontSize = fontSize + 'px';
+                saveState(); // Save state after font size change
             }
         }
     });
@@ -173,6 +184,7 @@ document.addEventListener('DOMContentLoaded', function() {
     fontSelect.addEventListener('change', function() {
         if (currentTextElement) {
             currentTextElement.style.fontFamily = fontSelect.value;
+            saveState(); // Save state after font family change
         }
     });
 
@@ -184,6 +196,7 @@ document.addEventListener('DOMContentLoaded', function() {
             } else {
                 currentTextElement.style.fontWeight = 'bold';
             }
+            saveState(); // Save state after bold change
         }
     });
 
@@ -195,6 +208,7 @@ document.addEventListener('DOMContentLoaded', function() {
             } else {
                 currentTextElement.style.fontStyle = 'italic';
             }
+            saveState(); // Save state after italic change
         }
     });
 
@@ -202,6 +216,7 @@ document.addEventListener('DOMContentLoaded', function() {
     colorInput.addEventListener('input', function() {
         if (currentTextElement) {
             currentTextElement.style.color = colorInput.value;
+            saveState(); // Save state after color change
         }
     });
 
@@ -236,4 +251,53 @@ document.addEventListener('DOMContentLoaded', function() {
     nextSlideButton.addEventListener('click', function() {
         showSlide(activeSlide + 1);
     });
+
+    // Save the current state for undo/redo
+    function saveState() {
+        const state = slides[activeSlide].innerHTML;
+        undoStack.push(state);
+        redoStack = []; // Clear redo stack whenever a new action is performed
+    }
+
+    // Undo the last action
+    function undo() {
+        if (undoStack.length > 1) {
+            const currentState = undoStack.pop();
+            redoStack.push(currentState);
+            const previousState = undoStack[undoStack.length - 1];
+            slides[activeSlide].innerHTML = previousState;
+            reinitializeTextBoxes();
+        }
+    }
+
+    // Redo the last undone action
+    function redo() {
+        if (redoStack.length > 0) {
+            const nextState = redoStack.pop();
+            undoStack.push(nextState);
+            slides[activeSlide].innerHTML = nextState;
+            reinitializeTextBoxes();
+        }
+    }
+
+    // Reinitialize text boxes after undo/redo
+    function reinitializeTextBoxes() {
+        document.querySelectorAll('.text-box').forEach(textBox => {
+            makeTextBoxDraggable(textBox);
+            textBox.querySelector('.delete').addEventListener('click', function() {
+                textBox.remove();
+                saveState(); // Save state after deletion
+            });
+            textBox.querySelector('.copy').addEventListener('click', function() {
+                navigator.clipboard.writeText(textBox.querySelector('.draggable-text').textContent);
+            });
+        });
+    }
+
+    // Add event listeners for undo and redo buttons
+    undoButton.addEventListener('click', undo);
+    redoButton.addEventListener('click', redo);
+
+    // Save the initial state
+    saveState();
 });
