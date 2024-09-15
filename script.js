@@ -89,6 +89,15 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         textBox.classList.add('selected');
     }
+     // Add event listener to the document to handle clicks outside of text boxes
+    document.addEventListener('click', function(event) {
+        const isClickInsideTextBox = event.target.closest('.text-box');
+        if (!isClickInsideTextBox) {
+            document.querySelectorAll('.text-box').forEach(box => {
+                box.classList.remove('selected');
+            });
+        }
+    });
 
     function addTextBox(textContent = 'New Text') {
         const textBox = document.createElement('div');
@@ -101,7 +110,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         const deleteButton = document.createElement('button');
         deleteButton.classList.add('icon', 'delete');
-        deleteButton.innerHTML = '<i class="fas fa-times"></i>';
+        deleteButton.innerHTML = '<i class="fas fa-trash"></i>';
         deleteButton.addEventListener('click', function() {
             textBox.remove();
             saveState(); // Save state after deletion
