@@ -14,12 +14,12 @@ document.addEventListener('DOMContentLoaded', function() {
     const boldButton = document.getElementById('bold-button');
     const italicButton = document.getElementById('italic-button');
     const colorInput = document.getElementById('color-input');
-    
+
     let currentTextElement = null;
 
     // Initial display of the first slide
     slides[activeSlide].classList.add('active');
-    
+
     // Create slider dots
     slides.forEach((slide, index) => {
         const dot = document.createElement('div');
@@ -31,16 +31,30 @@ document.addEventListener('DOMContentLoaded', function() {
         sliderDotsContainer.appendChild(dot);
     });
     const sliderDots = document.querySelectorAll('.slider-dot');
-    
+
     // Draggable text logic
     function makeTextBoxDraggable(textBox) {
         textBox.addEventListener('mousedown', function(e) {
+            e.preventDefault(); // Prevent default behavior
+
             let shiftX = e.clientX - textBox.getBoundingClientRect().left;
             let shiftY = e.clientY - textBox.getBoundingClientRect().top;
 
             function moveAt(pageX, pageY) {
-                textBox.style.left = pageX - shiftX + 'px';
-                textBox.style.top = pageY - shiftY + 'px';
+                const slideRect = slides[activeSlide].getBoundingClientRect();
+                const textBoxRect = textBox.getBoundingClientRect();
+
+                let newLeft = pageX - shiftX;
+                let newTop = pageY - shiftY;
+
+                // Boundary checks
+                if (newLeft < slideRect.left) newLeft = slideRect.left;
+                if (newTop < slideRect.top) newTop = slideRect.top;
+                if (newLeft + textBoxRect.width > slideRect.right) newLeft = slideRect.right - textBoxRect.width;
+                if (newTop + textBoxRect.height > slideRect.bottom) newTop = slideRect.bottom - textBoxRect.height;
+
+                textBox.style.left = newLeft - slideRect.left + 'px';  // Adjust relative to the slide
+                textBox.style.top = newTop - slideRect.top + 'px';     // Adjust relative to the slide
             }
 
             function onMouseMove(e) {
@@ -85,26 +99,12 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         textBox.appendChild(copyButton);
 
-        // Check if the middle of the slide is occupied
-        const middleOccupied = Array.from(slides[activeSlide].children).some(child => {
-            const rect = child.getBoundingClientRect();
-            const slideRect = slides[activeSlide].getBoundingClientRect();
-            return (
-                rect.left < slideRect.left + slideRect.width / 2 &&
-                rect.right > slideRect.left + slideRect.width / 2 &&
-                rect.top < slideRect.top + slideRect.height / 2 &&
-                rect.bottom > slideRect.top + slideRect.height / 2
-            );
-        });
-
-        if (!middleOccupied) {
-            textBox.style.left = '50%';
-            textBox.style.top = '50%';
-            textBox.style.transform = 'translate(-50%, -50%)';
-        } else {
-            textBox.style.left = '10px';
-            textBox.style.top = '10px';
-        }
+        // Set initial position at the center (without transform)
+        textBox.style.left = '50%';
+        textBox.style.top = '50%';
+        textBox.style.transform = '';  // Remove any transformations
+        textBox.style.position = 'absolute';  // Ensure it is positioned absolutely
+        textBox.style.margin = '0';  // Reset margin
 
         slides[activeSlide].appendChild(textBox);
         makeTextBoxDraggable(textBox);
@@ -127,7 +127,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Position hardcoded text boxes in the middle initially
         textBox.style.left = '50%';
         textBox.style.top = '50%';
-        textBox.style.transform = 'translate(-50%, -50%)';
+        textBox.style.transform = '';  // Remove transform for centering
     });
 
     // Text input changes
