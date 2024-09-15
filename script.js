@@ -1,20 +1,19 @@
 document.addEventListener('DOMContentLoaded', function() {
     let activeSlide = 0;
     const slides = document.querySelectorAll('.slide');
-    const editTextButton = document.getElementById('edit-text-button');
+    const addTextButton = document.getElementById('add-text-button');
     const textInputContainer = document.getElementById('text-input-container');
     const textInput = document.getElementById('text-input');
     const fontSizeDisplay = document.getElementById('font-size-display');
     const decrementFontSizeButton = document.getElementById('decrement-font-size');
     const incrementFontSizeButton = document.getElementById('increment-font-size');
     const fontSelect = document.getElementById('font-select');
-    const draggableText = document.querySelectorAll('.draggable-text');
     const prevSlideButton = document.getElementById('prev-slide');
     const nextSlideButton = document.getElementById('next-slide');
     const sliderDotsContainer = document.getElementById('slider-dots');
     
-    let currentTextElement = draggableText[activeSlide];
-    
+    let currentTextElement = null;
+
     // Initial display of the first slide
     slides[activeSlide].classList.add('active');
     
@@ -31,101 +30,109 @@ document.addEventListener('DOMContentLoaded', function() {
     const sliderDots = document.querySelectorAll('.slider-dot');
     
     // Draggable text logic
-    draggableText.forEach(textElement => {
+    function makeTextDraggable(textElement) {
         textElement.addEventListener('mousedown', function(e) {
             let shiftX = e.clientX - textElement.getBoundingClientRect().left;
             let shiftY = e.clientY - textElement.getBoundingClientRect().top;
-    
+
             function moveAt(pageX, pageY) {
                 textElement.style.left = pageX - shiftX + 'px';
                 textElement.style.top = pageY - shiftY + 'px';
             }
-    
+
             function onMouseMove(e) {
                 moveAt(e.pageX, e.pageY);
             }
-    
+
             document.addEventListener('mousemove', onMouseMove);
-    
+
             document.addEventListener('mouseup', function() {
                 document.removeEventListener('mousemove', onMouseMove);
             }, { once: true });
         });
-    });
-    
+
+        textElement.addEventListener('click', function() {
+            currentTextElement = textElement;
+            updateEditorInputs();
+        });
+    }
+
+    document.querySelectorAll('.draggable-text').forEach(makeTextDraggable);
+
     // Text input changes
     textInput.addEventListener('input', function() {
-        currentTextElement.textContent = textInput.value;
-    });
-
-    // Edit text button logic
-    editTextButton.addEventListener('click', function() {
-        editTextButton.style.display = 'none';
-        textInputContainer.style.display = 'block';
-        textInput.value = currentTextElement.textContent;
-        textInput.focus();
+        if (currentTextElement) {
+            currentTextElement.textContent = textInput.value;
+        }
     });
 
     textInput.addEventListener('blur', function() {
-        editTextButton.style.display = 'block';
         textInputContainer.style.display = 'none';
     });
-    
+
+    // Add text button logic
+    addTextButton.addEventListener('click', function() {
+        const newTextElement = document.createElement('div');
+        newTextElement.classList.add('draggable-text');
+        newTextElement.textContent = 'New Text';
+        slides[activeSlide].appendChild(newTextElement);
+        makeTextDraggable(newTextElement);
+        currentTextElement = newTextElement;
+        updateEditorInputs();
+        textInputContainer.style.display = 'block';
+        textInput.focus();
+    });
+
     // Font size change
     decrementFontSizeButton.addEventListener('click', function() {
-        let fontSize = parseInt(fontSizeDisplay.textContent);
-        if (fontSize > 10) {
-            fontSize--;
-            fontSizeDisplay.textContent = fontSize;
-            currentTextElement.style.fontSize = fontSize + 'px';
+        if (currentTextElement) {
+            let fontSize = parseInt(fontSizeDisplay.textContent);
+            if (fontSize > 10) {
+                fontSize--;
+                fontSizeDisplay.textContent = fontSize;
+                currentTextElement.style.fontSize = fontSize + 'px';
+            }
         }
     });
 
     incrementFontSizeButton.addEventListener('click', function() {
-        let fontSize = parseInt(fontSizeDisplay.textContent);
-        if (fontSize < 40) {
-            fontSize++;
-            fontSizeDisplay.textContent = fontSize;
-            currentTextElement.style.fontSize = fontSize + 'px';
+        if (currentTextElement) {
+            let fontSize = parseInt(fontSizeDisplay.textContent);
+            if (fontSize < 40) {
+                fontSize++;
+                fontSizeDisplay.textContent = fontSize;
+                currentTextElement.style.fontSize = fontSize + 'px';
+            }
         }
     });
-    
+
     // Font family change
     fontSelect.addEventListener('change', function() {
-        currentTextElement.style.fontFamily = fontSelect.value;
+        if (currentTextElement) {
+            currentTextElement.style.fontFamily = fontSelect.value;
+        }
     });
 
     // Update editor inputs based on the selected text element
     function updateEditorInputs() {
-        textInput.value = currentTextElement.textContent;
-        fontSizeDisplay.textContent = parseInt(window.getComputedStyle(currentTextElement).fontSize);
-        fontSelect.value = window.getComputedStyle(currentTextElement).fontFamily.replace(/['"]/g, '');
+        if (currentTextElement) {
+            textInput.value = currentTextElement.textContent;
+            fontSizeDisplay.textContent = parseInt(window.getComputedStyle(currentTextElement).fontSize);
+            fontSelect.value = window.getComputedStyle(currentTextElement).fontFamily.replace(/['"]/g, '');
+            textInputContainer.style.display = 'block';
+        } else {
+            textInputContainer.style.display = 'none';
+        }
     }
 
     // Select slide logic
-    slides.forEach((slide, index) => {
-        slide.addEventListener('click', function() {
-            slides[activeSlide].classList.remove('active');
-            sliderDots[activeSlide].classList.remove('active');
-            activeSlide = index;
-            slides[activeSlide].classList.add('active');
-            sliderDots[activeSlide].classList.add('active');
-            currentTextElement = draggableText[activeSlide];
-            updateEditorInputs();
-        });
-    });
-
-    // Initial update of editor inputs
-    updateEditorInputs();
-
-    // Navigation logic
     function showSlide(index) {
         slides[activeSlide].classList.remove('active');
         sliderDots[activeSlide].classList.remove('active');
         activeSlide = (index + slides.length) % slides.length;
         slides[activeSlide].classList.add('active');
         sliderDots[activeSlide].classList.add('active');
-        currentTextElement = draggableText[activeSlide];
+        currentTextElement = null;
         updateEditorInputs();
     }
 
