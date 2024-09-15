@@ -9,6 +9,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const incrementFontSizeButton = document.getElementById('increment-font-size');
     const fontSelect = document.getElementById('font-select');
     const draggableText = document.querySelectorAll('.draggable-text');
+    const prevSlideButton = document.getElementById('prev-slide');
+    const nextSlideButton = document.getElementById('next-slide');
     
     let currentTextElement = draggableText[activeSlide];
     
@@ -100,4 +102,21 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Initial update of editor inputs
     updateEditorInputs();
+
+    // Navigation logic
+    function showSlide(index) {
+        slides[activeSlide].classList.remove('active');
+        activeSlide = (index + slides.length) % slides.length;
+        slides[activeSlide].classList.add('active');
+        currentTextElement = draggableText[activeSlide];
+        updateEditorInputs();
+    }
+
+    prevSlideButton.addEventListener('click', function() {
+        showSlide(activeSlide - 1);
+    });
+
+    nextSlideButton.addEventListener('click', function() {
+        showSlide(activeSlide + 1);
+    });
 });

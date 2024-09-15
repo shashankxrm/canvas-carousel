@@ -23,6 +23,7 @@ html {
     justify-content: center;
     overflow: hidden;
     background-color: #f0f0f0;
+    position: relative;
 }
 
 .carousel {
@@ -100,4 +101,36 @@ input[type="text"] {
 .font-size-controls span {
     width: 40px;
     text-align: center;
+}
+
+.carousel-button {
+    position: absolute;
+    bottom: 20px;
+    /* Position at the bottom */
+    transform: translateY(0);
+    /* Remove vertical centering */
+    background-color: rgba(0, 0, 0, 0.5);
+    color: white;
+    border: none;
+    width: 40px;
+    /* Make the button round */
+    height: 40px;
+    /* Make the button round */
+    border-radius: 50%;
+    /* Make the button round */
+    cursor: pointer;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.carousel-button.left {
+    left: 20px;
+    /* Adjust positioning */
+}
+
+.carousel-button.right {
+    right: 20px;
+    /* Adjust positioning */
 }
