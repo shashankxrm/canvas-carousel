@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carousel with Text Editor</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <div class="container">
+        <!-- Left Side: Carousel -->
+        <div class="carousel-container">
+            <div class="carousel">
+                <div class="slide" style="background-image: url('./assets/image.png');">
+                    <div class="draggable-text" id="text1">Slide 1 Text</div>
+                </div>
+                <div class="slide" style="background-image: url('image2.jpg');">
+                    <div class="draggable-text" id="text2">Slide 2 Text</div>
+                </div>
+                <!-- Add more slides here -->
+            </div>
+        </div>
+
+        <!-- Right Side: Editor -->
+        <div class="editor">
+            <h2>Text Editor</h2>
+            <button id="edit-text-button">Edit Text</button>
+            <div id="text-input-container" style="display: none;">
+                <input type="text" id="text-input">
+            </div>
+
+            <label>Font Size:</label>
+            <div class="font-size-controls">
+                <button id="decrement-font-size">-</button>
+                <span id="font-size-display">16</span>px
+                <button id="increment-font-size">+</button>
+            </div>
+
+            <label for="font-select">Font Family:</label>
+            <select id="font-select">
+                <option value="Arial">Arial</option>
+                <option value="Courier New">Courier New</option>
+                <option value="Times New Roman">Times New Roman</option>
+            </select>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
