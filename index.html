@@ -54,9 +54,15 @@
         <div class="editor">
             <h2 class="editor-title">Text Editor</h2>
 
+            <div class="undo-redo">
+                <button class="editor-button" id="undo-button"><i class="fas fa-undo-alt"></i></button>
+                <button class="editor-button" id="redo-button"><i class="fas fa-redo-alt"></i></button>
+            </div>
+
+            
+
             <button class="editor-button" id="add-text-button">Add Text</button>
-            <button class="editor-button" id="undo-button"><i class="fas fa-undo-alt"></i></button>
-            <button class="editor-button" id="redo-button"><i class="fas fa-redo-alt"></i></button>
+            
 
             <div id="text-input-container" style="display: none;">
                 <input type="text" id="text-input" placeholder="Edit text here...">
@@ -64,10 +70,10 @@
 
             <div class="editor-controls">
                 <div class="font-size-controls">
-                    <label for="font-size">Font Size:</label>
+                    <label for="font-size"></label>
                     <div class="font-size-buttons">
                         <button id="decrement-font-size">-</button>
-                        <span id="font-size-display">16</span>px
+                        <span id="font-size-display">16</span>
                         <button id="increment-font-size">+</button>
                     </div>
                 </div>
@@ -86,8 +92,9 @@
                 </div>
 
                 <div class="font-family-controls">
-                    <label for="font-select">Font Family:</label>
+                    <label for="font-select"></label>
                     <select id="font-select">
+                        <option value="none">Font</option>
                         <option value="Arial">Arial</option>
                         <option value="Courier New">Courier New</option>
                         <option value="Times New Roman">Times New Roman</option>

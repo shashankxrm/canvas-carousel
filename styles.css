@@ -150,8 +150,16 @@ html {
     color: #333;
 }
 
+.undo-redo {
+    display: flex;
+    gap: 10px;
+    width: 20%;
+    margin-left: 35px;
+    
+}
+
 .editor-button {
-    width: 90%;
+    width: 30%;
     padding: 10px;
     margin-bottom: 10px;
     border: 1px solid #ccc;
@@ -192,7 +200,7 @@ html {
 .color-controls,
 .font-family-controls {
     display: flex;
-    justify-content: space-between;
+    justify-content: center;
     align-items: center;
 }
 
