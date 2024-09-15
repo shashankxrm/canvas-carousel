@@ -268,7 +268,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (currentTextElement) {
             textInput.value = currentTextElement.textContent;
             fontSizeDisplay.textContent = parseInt(window.getComputedStyle(currentTextElement).fontSize);
-            fontSelect.value = window.getComputedStyle(currentTextElement).fontFamily.replace(/['"]/g, '');
+            fontSelect.value = "";
             colorInput.value = window.getComputedStyle(currentTextElement).color;
 
             // Update button active states
@@ -280,8 +280,16 @@ document.addEventListener('DOMContentLoaded', function() {
             textInputContainer.style.display = 'block';
         } else {
             textInputContainer.style.display = 'none';
+            fontSelect.value = "";  // Reset to placeholder
         }
     }
+    fontSelect.addEventListener('change', function() {
+    if (currentTextElement && fontSelect.value !== "") {
+        currentTextElement.style.fontFamily = fontSelect.value;
+        saveState(); // Save state after font family change
+    }
+});
+
 
     // Select slide logic
     function showSlide(index) {
