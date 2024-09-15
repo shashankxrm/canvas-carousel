@@ -13,6 +13,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const sliderDotsContainer = document.getElementById('slider-dots');
     const boldButton = document.getElementById('bold-button');
     const italicButton = document.getElementById('italic-button');
+    const underlineButton = document.getElementById('underline-button');
+    const strikethroughButton = document.getElementById('strikethrough-button');
+
     const colorInput = document.getElementById('color-input');
     const undoButton = document.getElementById('undo-button');
     const redoButton = document.getElementById('redo-button');
@@ -90,7 +93,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         const deleteButton = document.createElement('button');
         deleteButton.classList.add('icon', 'delete');
-        deleteButton.innerHTML = '✖';
+        deleteButton.innerHTML = '<i class="fas fa-times"></i>';
         deleteButton.addEventListener('click', function() {
             textBox.remove();
             saveState(); // Save state after deletion
@@ -99,7 +102,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         const copyButton = document.createElement('button');
         copyButton.classList.add('icon', 'copy');
-        copyButton.innerHTML = '📋';
+        copyButton.innerHTML = '<i class="fas fa-copy"></i>';
         copyButton.addEventListener('click', function() {
             navigator.clipboard.writeText(newTextElement.textContent);
         });
@@ -199,6 +202,30 @@ document.addEventListener('DOMContentLoaded', function() {
             saveState(); // Save state after bold change
         }
     });
+
+    // Underline text
+underlineButton.addEventListener('click', function() {
+    if (currentTextElement) {
+        if (currentTextElement.style.textDecoration === 'underline') {
+            currentTextElement.style.textDecoration = 'none';
+        } else {
+            currentTextElement.style.textDecoration = 'underline';
+        }
+        saveState(); // Save state after underline change
+    }
+});
+
+// Strikethrough text
+strikethroughButton.addEventListener('click', function() {
+    if (currentTextElement) {
+        if (currentTextElement.style.textDecoration === 'line-through') {
+            currentTextElement.style.textDecoration = 'none';
+        } else {
+            currentTextElement.style.textDecoration = 'line-through';
+        }
+        saveState(); // Save state after strikethrough change
+    }
+});
 
     // Italic text
     italicButton.addEventListener('click', function() {

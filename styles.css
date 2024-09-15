@@ -40,22 +40,18 @@ html {
     background-position: center;
     position: absolute;
     display: none;
-    
 }
 
 .slide.active {
     display: block;
     width: 70%;
     background-position-y: bottom;
-    
-
 }
 
 .draggable-text {
     cursor: move;
-    user-select: none;
     -webkit-user-select: none;
-    /* Safari */
+    user-select: none;
 }
 
 .text-box {
@@ -63,15 +59,12 @@ html {
     border: 1px solid #ccc;
     border-radius: 5px;
     padding: 5px;
-    display: inline-block;
     background-color: rgba(255, 255, 255, 0.7);
-    cursor: move;
 }
 
 .text-box .icon {
     position: absolute;
     top: -10px;
-    /* Position the icons above the text box */
     cursor: pointer;
     background-color: rgba(0, 0, 0, 0.5);
     color: white;
@@ -119,23 +112,12 @@ html {
     justify-content: center;
 }
 
-.carousel-button.left {
-    left: 10px;
-    
-}
-
-.carousel-button.right {
-    right: 10px;
-    
-}
-
 .slider-dots {
     display: flex;
     gap: 5px;
     margin-left: 10px;
     margin-right: 10px;
     margin-top: -15px;
-    
 }
 
 .slider-dot {
@@ -153,42 +135,100 @@ html {
 .editor {
     width: 50%;
     padding: 20px;
-    background-color: #ffffff;
+    background-color: #f9f9f9;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-start;
+    border-left: 1px solid #e0e0e0;
 }
 
-button,
-select,
-input[type="text"] {
-    width: 80%;
-    padding: 5px;
+.editor-title {
+    font-size: 24px;
     margin-bottom: 20px;
+    color: #333;
+}
+
+.editor-button {
+    width: 90%;
+    padding: 10px;
+    margin-bottom: 10px;
     border: 1px solid #ccc;
     border-radius: 5px;
+    background-color: #e0e0e0;
+    cursor: pointer;
+    text-align: center;
+    font-size: 18px;
+    /* Adjust font size for icons */
 }
 
-.font-size-controls {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    width: 80%;
+.editor-button:hover {
+    background-color: #ccc;
+}
+
+.icon {
+    font-size: 16px;
+    /* Adjust icon size */
+}
+
+#text-input {
+    width: 90%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
     margin-bottom: 20px;
+}
+
+.editor-controls {
+    width: 90%;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.font-size-controls,
+.font-style-controls,
+.color-controls,
+.font-family-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
 .font-size-controls button {
     width: 30px;
     height: 30px;
+    border: none;
     border-radius: 50%;
+    background-color: #ccc;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.font-style-controls .style-button {
+    padding: 5px 10px;
+    background-color: #e0e0e0;
     border: 1px solid #ccc;
-    background-color: #f0f0f0;
+    border-radius: 5px;
     cursor: pointer;
 }
 
-.font-size-controls span {
+.font-style-controls .style-button:hover {
+    background-color: #ccc;
+}
+
+#color-input {
     width: 40px;
-    text-align: center;
+    height: 30px;
+    border: none;
+    cursor: pointer;
+}
+
+select,
+option {
+    padding: 5px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    background-color: #fff;
 }
