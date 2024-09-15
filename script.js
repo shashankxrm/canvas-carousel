@@ -11,6 +11,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const prevSlideButton = document.getElementById('prev-slide');
     const nextSlideButton = document.getElementById('next-slide');
     const sliderDotsContainer = document.getElementById('slider-dots');
+    const boldButton = document.getElementById('bold-button');
+    const italicButton = document.getElementById('italic-button');
+    const colorInput = document.getElementById('color-input');
     
     let currentTextElement = null;
 
@@ -113,12 +116,42 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
+    // Bold text
+    boldButton.addEventListener('click', function() {
+        if (currentTextElement) {
+            if (currentTextElement.style.fontWeight === 'bold') {
+                currentTextElement.style.fontWeight = 'normal';
+            } else {
+                currentTextElement.style.fontWeight = 'bold';
+            }
+        }
+    });
+
+    // Italic text
+    italicButton.addEventListener('click', function() {
+        if (currentTextElement) {
+            if (currentTextElement.style.fontStyle === 'italic') {
+                currentTextElement.style.fontStyle = 'normal';
+            } else {
+                currentTextElement.style.fontStyle = 'italic';
+            }
+        }
+    });
+
+    // Change text color
+    colorInput.addEventListener('input', function() {
+        if (currentTextElement) {
+            currentTextElement.style.color = colorInput.value;
+        }
+    });
+
     // Update editor inputs based on the selected text element
     function updateEditorInputs() {
         if (currentTextElement) {
             textInput.value = currentTextElement.textContent;
             fontSizeDisplay.textContent = parseInt(window.getComputedStyle(currentTextElement).fontSize);
             fontSelect.value = window.getComputedStyle(currentTextElement).fontFamily.replace(/['"]/g, '');
+            colorInput.value = window.getComputedStyle(currentTextElement).color;
             textInputContainer.style.display = 'block';
         } else {
             textInputContainer.style.display = 'none';
