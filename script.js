@@ -487,8 +487,9 @@ document.addEventListener('DOMContentLoaded', function() {
             actions.appendChild(copyButton);
             actions.appendChild(deleteButton);
 
-            listItem.appendChild(thumbnail);
             listItem.appendChild(dragHandle);
+            listItem.appendChild(thumbnail);
+            
             listItem.appendChild(actions);
 
             slideList.appendChild(listItem);
