@@ -13,35 +13,8 @@
     <div class="container">
         <!-- Left Side: Carousel -->
         <div class="carousel-container">
-            <div class="carousel">
-                <div class="slide" style="background-image: url('./assets/bg1.avif');">
-                    <div class="text-box">
-                        <div class="draggable-text" id="text1">Slide 1 Text</div>
-                        <button class="icon delete" title="Delete"><i class="fas fa-trash"></i></button>
-                        <button class="icon copy" title="Copy"><i class="fas fa-copy"></i></button>
-                    </div>
-                </div>
-                <div class="slide" style="background-image: url('/assets/bg2.avif');">
-                    <div class="text-box">
-                        <div class="draggable-text" id="text2">Slide 2 Text</div>
-                        <button class="icon delete"><i class="fas fa-trash"></i></button>
-                        <button class="icon copy"><i class="fas fa-copy"></i></button>
-                    </div>
-                </div>
-                <div class="slide" style="background-image: url('/assets/bg3.jpg');">
-                    <div class="text-box">
-                        <div class="draggable-text" id="text3">Slide 3 Text</div>
-                        <button class="icon delete"><i class="fas fa-trash"></i></button>
-                        <button class="icon copy"><i class="fas fa-copy"></i></button>
-                    </div>
-                </div>
-                <div class="slide" style="background-image: url('/assets/bg4.jpg');">
-                    <div class="text-box">
-                        <div class="draggable-text" id="text4">Slide 4 Text</div>
-                        <button class="icon delete"><i class="fas fa-trash"></i></button>
-                        <button class="icon copy"><i class="fas fa-copy"></i></button>
-                    </div>
-                </div>
+            <div class="carousel" id="carousel">
+                <!-- Slides will be rendered here by JavaScript -->
             </div>
             <div class="controls-container">
                 <button class="carousel-button left" id="prev-slide"><i class="fas fa-chevron-left"></i></button>
@@ -59,10 +32,7 @@
                 <button class="editor-button" id="redo-button"><i class="fas fa-redo-alt"></i></button>
             </div>
 
-            
-
             <button class="editor-button" id="add-text-button">Add Text</button>
-            
 
             <div id="text-input-container" style="display: none;">
                 <input type="text" id="text-input" placeholder="Edit text here...">
@@ -80,8 +50,10 @@
 
                 <div class="font-style-controls">
                     <button id="bold-button" class="style-button" title="Bold"><i class="fas fa-bold"></i></button>
-                    <button id="italic-button" class="style-button" title="Italic"><i class="fas fa-italic"></i></button>
-                    <button id="underline-button" class="style-button" title="Underline"><i class="fas fa-underline"></i></button>
+                    <button id="italic-button" class="style-button" title="Italic"><i
+                            class="fas fa-italic"></i></button>
+                    <button id="underline-button" class="style-button" title="Underline"><i
+                            class="fas fa-underline"></i></button>
                     <button id="strikethrough-button" class="style-button" title="Strikethrough"><i
                             class="fas fa-strikethrough"></i></button>
                 </div>

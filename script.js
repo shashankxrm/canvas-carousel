@@ -1,4 +1,45 @@
 document.addEventListener('DOMContentLoaded', function() {
+     // Declare the slidesData variable
+    const slidesData = [
+        { id: 'text1', text: 'Slide 1 Text', imageUrl: './assets/bg1.avif' },
+        { id: 'text2', text: 'Slide 2 Text', imageUrl: './assets/bg2.avif' },
+        { id: 'text3', text: 'Slide 3 Text', imageUrl: './assets/bg3.jpg' },
+        { id: 'text4', text: 'Slide 4 Text', imageUrl: './assets/bg4.jpg' }
+    ];
+
+    // Add the dynamically rendering slides code here
+    const carousel = document.getElementById('carousel');
+
+    slidesData.forEach(slide => {
+        const slideElement = document.createElement('div');
+        slideElement.className = 'slide';
+        slideElement.style.backgroundImage = `url('${slide.imageUrl}')`;
+
+        const textBox = document.createElement('div');
+        textBox.className = 'text-box';
+
+        const draggableText = document.createElement('div');
+        draggableText.className = 'draggable-text';
+        draggableText.id = slide.id;
+        draggableText.textContent = slide.text;
+
+        const deleteButton = document.createElement('button');
+        deleteButton.className = 'icon delete';
+        deleteButton.title = 'Delete';
+        deleteButton.innerHTML = '<i class="fas fa-trash"></i>';
+
+        const copyButton = document.createElement('button');
+        copyButton.className = 'icon copy';
+        copyButton.title = 'Copy';
+        copyButton.innerHTML = '<i class="fas fa-copy"></i>';
+
+        textBox.appendChild(draggableText);
+        textBox.appendChild(deleteButton);
+        textBox.appendChild(copyButton);
+
+        slideElement.appendChild(textBox);
+        carousel.appendChild(slideElement);
+    });
     let activeSlide = 0;
     const slides = document.querySelectorAll('.slide');
     const addTextButton = document.getElementById('add-text-button');
