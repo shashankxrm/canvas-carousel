@@ -6,7 +6,6 @@ document.addEventListener('DOMContentLoaded', function() {
         { id: 'text3', text: 'Slide 3 Text', imageUrl: './assets/bg3.jpg' },
         { id: 'text4', text: 'Slide 4 Text', imageUrl: './assets/bg4.jpg' }
     ];
-
     // Add the dynamically rendering slides code here
     const carousel = document.getElementById('carousel');
 
@@ -408,4 +407,189 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Save the initial state
     saveState();
+
+    // Function to render the carousel based on slidesData
+    function renderCarousel() {
+        const carousel = document.getElementById('carousel');
+        carousel.innerHTML = ''; // Clear existing slides
+
+        slidesData.forEach(slide => {
+            const slideElement = document.createElement('div');
+            slideElement.className = 'slide';
+            slideElement.style.backgroundImage = `url('${slide.imageUrl}')`;
+
+            const textBox = document.createElement('div');
+            textBox.className = 'text-box';
+
+            const draggableText = document.createElement('div');
+            draggableText.className = 'draggable-text';
+            draggableText.id = slide.id;
+            draggableText.textContent = slide.text;
+
+            const deleteButton = document.createElement('button');
+            deleteButton.className = 'icon delete';
+            deleteButton.title = 'Delete';
+            deleteButton.innerHTML = '<i class="fas fa-trash"></i>';
+
+            const copyButton = document.createElement('button');
+            copyButton.className = 'icon copy';
+            copyButton.title = 'Copy';
+            copyButton.innerHTML = '<i class="fas fa-copy"></i>';
+
+            textBox.appendChild(draggableText);
+            textBox.appendChild(deleteButton);
+            textBox.appendChild(copyButton);
+
+            slideElement.appendChild(textBox);
+            carousel.appendChild(slideElement);
+        });
+
+        // Reinitialize slides and other elements
+        initializeSlides();
+    }
+
+    // Slide Order Editor
+    const slideList = document.getElementById('slide-list');
+    const saveOrderButton = document.getElementById('save-order-button');
+    const cancelOrderButton = document.getElementById('cancel-order-button');
+    const slideOrderEditorDialog = document.getElementById('slide-order-editor-dialog');
+    const openSlideOrderEditorButton = document.getElementById('open-slide-order-editor');
+
+    function renderSlideList() {
+        slideList.innerHTML = '';
+        slidesData.forEach((slide, index) => {
+            const listItem = document.createElement('li');
+            listItem.dataset.index = index;
+
+            const thumbnail = document.createElement('div');
+            thumbnail.className = 'thumbnail';
+            thumbnail.style.backgroundImage = `url('${slide.imageUrl}')`;
+
+            const dragHandle = document.createElement('div');
+            dragHandle.className = 'drag-handle';
+            dragHandle.innerHTML = '&#9776;'; // Three horizontal lines
+
+            const actions = document.createElement('div');
+            actions.className = 'actions';
+
+            const copyButton = document.createElement('button');
+            copyButton.className = 'icon copy';
+            copyButton.title = 'Copy';
+            copyButton.innerHTML = '<i class="fas fa-copy"></i>';
+            copyButton.addEventListener('click', () => copySlide(index));
+
+            const deleteButton = document.createElement('button');
+            deleteButton.className = 'icon delete';
+            deleteButton.title = 'Delete';
+            deleteButton.innerHTML = '<i class="fas fa-trash"></i>';
+            deleteButton.addEventListener('click', () => deleteSlide(index));
+
+            actions.appendChild(copyButton);
+            actions.appendChild(deleteButton);
+
+            listItem.appendChild(thumbnail);
+            listItem.appendChild(dragHandle);
+            listItem.appendChild(actions);
+
+            slideList.appendChild(listItem);
+        });
+
+        // Make the list sortable
+        new Sortable(slideList, {
+            handle: '.drag-handle',
+            animation: 150,
+            onEnd: updateSlideOrder
+        });
+    }
+
+    function updateSlideOrder() {
+        const newOrder = [];
+        slideList.querySelectorAll('li').forEach((item, index) => {
+            const slideIndex = item.dataset.index;
+            newOrder.push(slidesData[slideIndex]);
+        });
+        slidesData.length = 0;
+        slidesData.push(...newOrder);
+    }
+
+    function copySlide(index) {
+        const newSlide = { ...slidesData[index], id: `text${slidesData.length + 1}` };
+        slidesData.push(newSlide);
+        renderSlideList();
+    }
+
+    function deleteSlide(index) {
+        slidesData.splice(index, 1);
+        renderSlideList();
+    }
+
+    saveOrderButton.addEventListener('click', () => {
+        // Save the new order (e.g., send to server or update local storage)
+        console.log('New slide order saved:', slidesData);
+        slideOrderEditorDialog.style.display = 'none';
+    });
+
+    cancelOrderButton.addEventListener('click', () => {
+        // Re-render the list to discard changes
+        renderSlideList();
+        slideOrderEditorDialog.style.display = 'none';
+    });
+
+    openSlideOrderEditorButton.addEventListener('click', () => {
+        slideOrderEditorDialog.style.display = 'flex';
+        renderSlideList();
+    });
+
+    // Close the dialog when clicking outside of it
+    slideOrderEditorDialog.addEventListener('click', (event) => {
+        if (event.target === slideOrderEditorDialog) {
+            slideOrderEditorDialog.style.display = 'none';
+        }
+    });
+
+     // Function to initialize slides and other elements
+    function initializeSlides() {
+        let activeSlide = 0;
+        const slides = document.querySelectorAll('.slide');
+        const sliderDotsContainer = document.getElementById('slider-dots');
+        sliderDotsContainer.innerHTML = ''; // Clear existing dots
+
+        // Initial display of the first slide
+        slides[activeSlide].classList.add('active');
+
+        // Create slider dots
+        slides.forEach((slide, index) => {
+            const dot = document.createElement('div');
+            dot.classList.add('slider-dot');
+            if (index === activeSlide) {
+                dot.classList.add('active');
+            }
+            dot.addEventListener('click', () => showSlide(index));
+            sliderDotsContainer.appendChild(dot);
+        });
+        const sliderDots = document.querySelectorAll('.slider-dot');
+
+        // Function to select slide logic
+        function showSlide(index) {
+            slides[activeSlide].classList.remove('active');
+            sliderDots[activeSlide].classList.remove('active');
+            activeSlide = (index + slides.length) % slides.length;
+            slides[activeSlide].classList.add('active');
+            sliderDots[activeSlide].classList.add('active');
+            currentTextElement = null;
+            updateEditorInputs();
+        }
+
+        document.getElementById('prev-slide').addEventListener('click', function() {
+            showSlide(activeSlide - 1);
+        });
+        document.getElementById('next-slide').addEventListener('click', function() {
+            showSlide(activeSlide + 1);
+        });
+
+        // Reinitialize text boxes after rendering
+        reinitializeTextBoxes();
+    }
+    
+
 });
