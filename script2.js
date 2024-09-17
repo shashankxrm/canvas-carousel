@@ -1,46 +1,18 @@
 document.addEventListener('DOMContentLoaded', function() {
-     // Declare the slidesData variable
+    // Declare the slidesData variable
     const slidesData = [
         { id: 'text1', text: 'Slide 1 Text', imageUrl: './assets/bg1.avif' },
         { id: 'text2', text: 'Slide 2 Text', imageUrl: './assets/bg2.avif' },
         { id: 'text3', text: 'Slide 3 Text', imageUrl: './assets/bg3.jpg' },
         { id: 'text4', text: 'Slide 4 Text', imageUrl: './assets/bg4.jpg' }
     ];
-    // Add the dynamically rendering slides code here
-    const carousel = document.getElementById('carousel');
 
-    slidesData.forEach(slide => {
-        const slideElement = document.createElement('div');
-        slideElement.className = 'slide';
-        slideElement.style.backgroundImage = `url('${slide.imageUrl}')`;
-
-        const textBox = document.createElement('div');
-        textBox.className = 'text-box';
-
-        const draggableText = document.createElement('div');
-        draggableText.className = 'draggable-text';
-        draggableText.id = slide.id;
-        draggableText.textContent = slide.text;
-
-        const deleteButton = document.createElement('button');
-        deleteButton.className = 'icon delete';
-        deleteButton.title = 'Delete';
-        deleteButton.innerHTML = '<i class="fas fa-trash"></i>';
-
-        const copyButton = document.createElement('button');
-        copyButton.className = 'icon copy';
-        copyButton.title = 'Copy';
-        copyButton.innerHTML = '<i class="fas fa-copy"></i>';
-
-        textBox.appendChild(draggableText);
-        textBox.appendChild(deleteButton);
-        textBox.appendChild(copyButton);
-
-        slideElement.appendChild(textBox);
-        carousel.appendChild(slideElement);
-    });
     let activeSlide = 0;
-    const slides = document.querySelectorAll('.slide');
+    let currentTextElement = null;
+    let undoStack = [];
+    let redoStack = [];
+
+    const carousel = document.getElementById('carousel');
     const addTextButton = document.getElementById('add-text-button');
     const textInputContainer = document.getElementById('text-input-container');
     const textInput = document.getElementById('text-input');
@@ -58,25 +30,97 @@ document.addEventListener('DOMContentLoaded', function() {
     const colorInput = document.getElementById('color-input');
     const undoButton = document.getElementById('undo-button');
     const redoButton = document.getElementById('redo-button');
+    const slideList = document.getElementById('slide-list');
+    const saveOrderButton = document.getElementById('save-order-button');
+    const cancelOrderButton = document.getElementById('cancel-order-button');
+    const slideOrderEditorDialog = document.getElementById('slide-order-editor-dialog');
+    const openSlideOrderEditorButton = document.getElementById('open-slide-order-editor');
 
-    let currentTextElement = null;
-    let undoStack = [];
-    let redoStack = [];
+    // Function to render the carousel based on slidesData
+    function renderCarousel() {
+        carousel.innerHTML = ''; // Clear existing slides
 
-    // Initial display of the first slide
-    slides[activeSlide].classList.add('active');
+        slidesData.forEach(slide => {
+            const slideElement = document.createElement('div');
+            slideElement.className = 'slide';
+            slideElement.style.backgroundImage = `url('${slide.imageUrl}')`;
 
-    // Create slider dots
-    slides.forEach((slide, index) => {
-        const dot = document.createElement('div');
-        dot.classList.add('slider-dot');
-        if (index === activeSlide) {
-            dot.classList.add('active');
+            const textBox = document.createElement('div');
+            textBox.className = 'text-box';
+
+            const draggableText = document.createElement('div');
+            draggableText.className = 'draggable-text';
+            draggableText.id = slide.id;
+            draggableText.textContent = slide.text;
+
+            const deleteButton = document.createElement('button');
+            deleteButton.className = 'icon delete';
+            deleteButton.title = 'Delete';
+            deleteButton.innerHTML = '<i class="fas fa-trash"></i>';
+
+            const copyButton = document.createElement('button');
+            copyButton.className = 'icon copy';
+            copyButton.title = 'Copy';
+            copyButton.innerHTML = '<i class="fas fa-copy"></i>';
+
+            textBox.appendChild(draggableText);
+            textBox.appendChild(deleteButton);
+            textBox.appendChild(copyButton);
+
+            slideElement.appendChild(textBox);
+            carousel.appendChild(slideElement);
+        });
+
+        // Reinitialize slides and other elements
+        initializeSlides();
+    }
+
+    // Function to initialize slides and other elements
+    function initializeSlides() {
+        const slides = document.querySelectorAll('.slide');
+        sliderDotsContainer.innerHTML = ''; // Clear existing dots
+
+        // Initial display of the first slide
+        if (slides.length > 0) {
+            slides[activeSlide].classList.add('active');
         }
-        dot.addEventListener('click', () => showSlide(index));
-        sliderDotsContainer.appendChild(dot);
-    });
-    const sliderDots = document.querySelectorAll('.slider-dot');
+
+        // Create slider dots
+        slides.forEach((slide, index) => {
+            const dot = document.createElement('div');
+            dot.classList.add('slider-dot');
+            if (index === activeSlide) {
+                dot.classList.add('active');
+            }
+            dot.addEventListener('click', () => showSlide(index));
+            sliderDotsContainer.appendChild(dot);
+        });
+        const sliderDots = document.querySelectorAll('.slider-dot');
+
+        // Function to select slide logic
+        function showSlide(index) {
+            if (slides.length > 0) {
+                slides[activeSlide].classList.remove('active');
+                sliderDots[activeSlide].classList.remove('active');
+                activeSlide = (index + slides.length) % slides.length;
+                slides[activeSlide].classList.add('active');
+                sliderDots[activeSlide].classList.add('active');
+                currentTextElement = null;
+                updateEditorInputs();
+            }
+        }
+
+        prevSlideButton.addEventListener('click', function() {
+            showSlide(activeSlide - 1);
+        });
+
+        nextSlideButton.addEventListener('click', function() {
+            showSlide(activeSlide + 1);
+        });
+
+        // Reinitialize text boxes after rendering
+        reinitializeTextBoxes();
+    }
 
     // Draggable text logic
     function makeTextBoxDraggable(textBox) {
@@ -87,7 +131,7 @@ document.addEventListener('DOMContentLoaded', function() {
             let shiftY = e.clientY - textBox.getBoundingClientRect().top;
 
             function moveAt(pageX, pageY) {
-                const slideRect = slides[activeSlide].getBoundingClientRect();
+                const slideRect = document.querySelector('.slide.active').getBoundingClientRect();
                 const textBoxRect = textBox.getBoundingClientRect();
 
                 let newLeft = pageX - shiftX;
@@ -129,7 +173,8 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         textBox.classList.add('selected');
     }
-     // Add event listener to the document to handle clicks outside of text boxes
+
+    // Add event listener to the document to handle clicks outside of text boxes
     document.addEventListener('click', function(event) {
         const isClickInsideTextBox = event.target.closest('.text-box');
         if (!isClickInsideTextBox) {
@@ -172,7 +217,7 @@ document.addEventListener('DOMContentLoaded', function() {
         textBox.style.position = 'absolute';  // Ensure it is positioned absolutely
         textBox.style.margin = '0';  // Reset margin
 
-        slides[activeSlide].appendChild(textBox);
+        document.querySelector('.slide.active').appendChild(textBox);
         makeTextBoxDraggable(textBox);
         currentTextElement = newTextElement;
         updateEditorInputs();
@@ -182,21 +227,23 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Initialize hardcoded text boxes
-    document.querySelectorAll('.text-box').forEach(textBox => {
-        makeTextBoxDraggable(textBox);
-        textBox.querySelector('.delete').addEventListener('click', function() {
-            textBox.remove();
-            saveState(); // Save state after deletion
-        });
-        textBox.querySelector('.copy').addEventListener('click', function() {
-            navigator.clipboard.writeText(textBox.querySelector('.draggable-text').textContent);
-        });
+    function reinitializeTextBoxes() {
+        document.querySelectorAll('.text-box').forEach(textBox => {
+            makeTextBoxDraggable(textBox);
+            textBox.querySelector('.delete').addEventListener('click', function() {
+                textBox.remove();
+                saveState(); // Save state after deletion
+            });
+            textBox.querySelector('.copy').addEventListener('click', function() {
+                navigator.clipboard.writeText(textBox.querySelector('.draggable-text').textContent);
+            });
 
-        // Position hardcoded text boxes in the middle initially
-        textBox.style.left = '50%';
-        textBox.style.top = '50%';
-        textBox.style.transform = '';  // Remove transform for centering
-    });
+            // Position hardcoded text boxes in the middle initially
+            textBox.style.left = '50%';
+            textBox.style.top = '50%';
+            textBox.style.transform = '';  // Remove transform for centering
+        });
+    }
 
     // Text input changes
     textInput.addEventListener('input', function() {
@@ -332,38 +379,15 @@ document.addEventListener('DOMContentLoaded', function() {
             fontSelect.value = "";  // Reset to placeholder
         }
     }
-    fontSelect.addEventListener('change', function() {
-    if (currentTextElement && fontSelect.value !== "") {
-        currentTextElement.style.fontFamily = fontSelect.value;
-        saveState(); // Save state after font family change
-    }
-});
-
-
-    // Select slide logic
-    function showSlide(index) {
-        slides[activeSlide].classList.remove('active');
-        sliderDots[activeSlide].classList.remove('active');
-        activeSlide = (index + slides.length) % slides.length;
-        slides[activeSlide].classList.add('active');
-        sliderDots[activeSlide].classList.add('active');
-        currentTextElement = null;
-        updateEditorInputs();
-    }
-
-    prevSlideButton.addEventListener('click', function() {
-        showSlide(activeSlide - 1);
-    });
-
-    nextSlideButton.addEventListener('click', function() {
-        showSlide(activeSlide + 1);
-    });
 
     // Save the current state for undo/redo
     function saveState() {
-        const state = slides[activeSlide].innerHTML;
-        undoStack.push(state);
-        redoStack = []; // Clear redo stack whenever a new action is performed
+        const activeSlideElement = document.querySelector('.slide.active');
+        if (activeSlideElement) {
+            const state = activeSlideElement.innerHTML;
+            undoStack.push(state);
+            redoStack = []; // Clear redo stack whenever a new action is performed
+        }
     }
 
     // Undo the last action
@@ -372,7 +396,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const currentState = undoStack.pop();
             redoStack.push(currentState);
             const previousState = undoStack[undoStack.length - 1];
-            slides[activeSlide].innerHTML = previousState;
+            document.querySelector('.slide.active').innerHTML = previousState;
             reinitializeTextBoxes();
         }
     }
@@ -382,23 +406,9 @@ document.addEventListener('DOMContentLoaded', function() {
         if (redoStack.length > 0) {
             const nextState = redoStack.pop();
             undoStack.push(nextState);
-            slides[activeSlide].innerHTML = nextState;
+            document.querySelector('.slide.active').innerHTML = nextState;
             reinitializeTextBoxes();
         }
-    }
-
-    // Reinitialize text boxes after undo/redo
-    function reinitializeTextBoxes() {
-        document.querySelectorAll('.text-box').forEach(textBox => {
-            makeTextBoxDraggable(textBox);
-            textBox.querySelector('.delete').addEventListener('click', function() {
-                textBox.remove();
-                saveState(); // Save state after deletion
-            });
-            textBox.querySelector('.copy').addEventListener('click', function() {
-                navigator.clipboard.writeText(textBox.querySelector('.draggable-text').textContent);
-            });
-        });
     }
 
     // Add event listeners for undo and redo buttons
@@ -408,53 +418,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Save the initial state
     saveState();
 
-    // Function to render the carousel based on slidesData
-    function renderCarousel() {
-        const carousel = document.getElementById('carousel');
-        carousel.innerHTML = ''; // Clear existing slides
-
-        slidesData.forEach(slide => {
-            const slideElement = document.createElement('div');
-            slideElement.className = 'slide';
-            slideElement.style.backgroundImage = `url('${slide.imageUrl}')`;
-
-            const textBox = document.createElement('div');
-            textBox.className = 'text-box';
-
-            const draggableText = document.createElement('div');
-            draggableText.className = 'draggable-text';
-            draggableText.id = slide.id;
-            draggableText.textContent = slide.text;
-
-            const deleteButton = document.createElement('button');
-            deleteButton.className = 'icon delete';
-            deleteButton.title = 'Delete';
-            deleteButton.innerHTML = '<i class="fas fa-trash"></i>';
-
-            const copyButton = document.createElement('button');
-            copyButton.className = 'icon copy';
-            copyButton.title = 'Copy';
-            copyButton.innerHTML = '<i class="fas fa-copy"></i>';
-
-            textBox.appendChild(draggableText);
-            textBox.appendChild(deleteButton);
-            textBox.appendChild(copyButton);
-
-            slideElement.appendChild(textBox);
-            carousel.appendChild(slideElement);
-        });
-
-        // Reinitialize slides and other elements
-        initializeSlides();
-    }
-
     // Slide Order Editor
-    const slideList = document.getElementById('slide-list');
-    const saveOrderButton = document.getElementById('save-order-button');
-    const cancelOrderButton = document.getElementById('cancel-order-button');
-    const slideOrderEditorDialog = document.getElementById('slide-order-editor-dialog');
-    const openSlideOrderEditorButton = document.getElementById('open-slide-order-editor');
-
     function renderSlideList() {
         slideList.innerHTML = '';
         slidesData.forEach((slide, index) => {
@@ -489,7 +453,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
             listItem.appendChild(dragHandle);
             listItem.appendChild(thumbnail);
-            
             listItem.appendChild(actions);
 
             slideList.appendChild(listItem);
@@ -549,15 +512,15 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-     // Function to initialize slides and other elements
+    // Function to initialize slides and other elements
     function initializeSlides() {
-        let activeSlide = 0;
         const slides = document.querySelectorAll('.slide');
-        const sliderDotsContainer = document.getElementById('slider-dots');
         sliderDotsContainer.innerHTML = ''; // Clear existing dots
 
         // Initial display of the first slide
-        slides[activeSlide].classList.add('active');
+        if (slides.length > 0) {
+            slides[activeSlide].classList.add('active');
+        }
 
         // Create slider dots
         slides.forEach((slide, index) => {
@@ -573,25 +536,89 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Function to select slide logic
         function showSlide(index) {
-            slides[activeSlide].classList.remove('active');
-            sliderDots[activeSlide].classList.remove('active');
-            activeSlide = (index + slides.length) % slides.length;
-            slides[activeSlide].classList.add('active');
-            sliderDots[activeSlide].classList.add('active');
-            currentTextElement = null;
-            updateEditorInputs();
+            if (slides.length > 0) {
+                slides[activeSlide].classList.remove('active');
+                sliderDots[activeSlide].classList.remove('active');
+                activeSlide = (index + slides.length) % slides.length;
+                slides[activeSlide].classList.add('active');
+                sliderDots[activeSlide].classList.add('active');
+                currentTextElement = null;
+                updateEditorInputs();
+            }
         }
 
-        document.getElementById('prev-slide').addEventListener('click', function() {
+        prevSlideButton.addEventListener('click', function() {
             showSlide(activeSlide - 1);
         });
-        document.getElementById('next-slide').addEventListener('click', function() {
+
+        nextSlideButton.addEventListener('click', function() {
             showSlide(activeSlide + 1);
         });
 
         // Reinitialize text boxes after rendering
         reinitializeTextBoxes();
     }
-    
 
+    // Function to reinitialize text boxes after rendering
+    function reinitializeTextBoxes() {
+        document.querySelectorAll('.text-box').forEach(textBox => {
+            makeTextBoxDraggable(textBox);
+            textBox.querySelector('.delete').addEventListener('click', function() {
+                textBox.remove();
+                saveState(); // Save state after deletion
+            });
+            textBox.querySelector('.copy').addEventListener('click', function() {
+                navigator.clipboard.writeText(textBox.querySelector('.draggable-text').textContent);
+            });
+        });
+    }
+
+    // Save the current state for undo/redo
+    function saveState() {
+        const activeSlideElement = document.querySelector('.slide.active');
+        if (activeSlideElement) {
+            const state = activeSlideElement.innerHTML;
+            undoStack.push(state);
+            redoStack = []; // Clear redo stack whenever a new action is performed
+        }
+    }
+    // Function to render the carousel based on slidesData
+    function renderCarousel() {
+        carousel.innerHTML = ''; // Clear existing slides
+
+        slidesData.forEach(slide => {
+            const slideElement = document.createElement('div');
+            slideElement.className = 'slide';
+            slideElement.style.backgroundImage = `url('${slide.imageUrl}')`;
+
+            const textBox = document.createElement('div');
+            textBox.className = 'text-box';
+
+            const draggableText = document.createElement('div');
+            draggableText.className = 'draggable-text';
+            draggableText.id = slide.id;
+            draggableText.textContent = slide.text;
+
+            const deleteButton = document.createElement('button');
+            deleteButton.className = 'icon delete';
+            deleteButton.title = 'Delete';
+            deleteButton.innerHTML = '<i class="fas fa-trash"></i>';
+
+            const copyButton = document.createElement('button');
+            copyButton.className = 'icon copy';
+            copyButton.title = 'Copy';
+            copyButton.innerHTML = '<i class="fas fa-copy"></i>';
+
+            textBox.appendChild(draggableText);
+            textBox.appendChild(deleteButton);
+            textBox.appendChild(copyButton);
+
+            slideElement.appendChild(textBox);
+            carousel.appendChild(slideElement);
+        });
+
+        // Reinitialize slides and other elements
+        initializeSlides();
+    }
+    renderCarousel();
 });
