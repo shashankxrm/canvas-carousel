@@ -3,11 +3,12 @@ import { db, collection, getDocs, doc, setDoc, deleteDoc } from './firebaseConfi
 document.addEventListener('DOMContentLoaded', function () {
     let activeSlide = 0;
     let currentTextElement = null;
+    let slidesData = [];
     let undoStack = [];
     let redoStack = [];
 
-    const carousel = document.getElementById('carousel');
-    const newSlideButton = document.getElementById('new-slide-button'); // Add New Slide button reference
+   const carousel = document.getElementById('carousel');
+    const newSlideButton = document.getElementById('new-slide-button'); 
     const addTextButton = document.getElementById('add-text-button');
     const textInputContainer = document.getElementById('text-input-container');
     const textInput = document.getElementById('text-input');
@@ -23,8 +24,6 @@ document.addEventListener('DOMContentLoaded', function () {
     const underlineButton = document.getElementById('underline-button');
     const strikethroughButton = document.getElementById('strikethrough-button');
     const colorInput = document.getElementById('color-input');
-    const undoButton = document.getElementById('undo-button');
-    const redoButton = document.getElementById('redo-button');
     const slideList = document.getElementById('slide-list');
     const saveOrderButton = document.getElementById('save-order-button');
     const cancelOrderButton = document.getElementById('cancel-order-button');
@@ -33,13 +32,13 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Fetch slides from Firestore
     async function fetchSlides() {
-        const slides = [];
+        slidesData = [];
         const slidesCollection = collection(db, 'slides');
         const snapshot = await getDocs(slidesCollection);
         snapshot.forEach(doc => {
-            slides.push({ id: doc.id, ...doc.data() });
+            slidesData.push({ id: doc.id, ...doc.data() });
         });
-        return slides;
+        return slidesData;
     }
 
     // Save slide data to Firestore
@@ -59,7 +58,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const slideId = `slide-${Date.now()}`; // Generate a unique ID for the slide
         const newSlide = {
             id: slideId,
-            text: '',
+            text: 'New Text',
             imageUrl: './assets/default.jpg',  // Default background image
             textBoxLeft: '50%',
             textBoxTop: '50%'
@@ -113,6 +112,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
             slideElement.appendChild(textBox);
             carousel.appendChild(slideElement);
+            // Make the text box draggable
+            makeTextBoxDraggable(textBox);
         });
 
         // Reinitialize slides and other elements
@@ -161,15 +162,12 @@ document.addEventListener('DOMContentLoaded', function () {
         nextSlideButton.addEventListener('click', function () {
             showSlide(activeSlide + 1);
         });
-
-        // Reinitialize text boxes after rendering
-        reinitializeTextBoxes();
     }
 
-    // Draggable text logic
+   // Make a text box draggable
     function makeTextBoxDraggable(textBox) {
         textBox.addEventListener('mousedown', function (e) {
-            e.preventDefault(); // Prevent default behavior
+            e.preventDefault();
 
             let shiftX = e.clientX - textBox.getBoundingClientRect().left;
             let shiftY = e.clientY - textBox.getBoundingClientRect().top;
@@ -187,8 +185,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (newLeft + textBoxRect.width > slideRect.right) newLeft = slideRect.right - textBoxRect.width;
                 if (newTop + textBoxRect.height > slideRect.bottom) newTop = slideRect.bottom - textBoxRect.height;
 
-                textBox.style.left = newLeft - slideRect.left + 'px';  // Adjust relative to the slide
-                textBox.style.top = newTop - slideRect.top + 'px';     // Adjust relative to the slide
+                textBox.style.left = newLeft - slideRect.left + 'px';
+                textBox.style.top = newTop - slideRect.top + 'px';
             }
 
             function onMouseMove(e) {
@@ -209,7 +207,6 @@ document.addEventListener('DOMContentLoaded', function () {
             selectTextBox(textBox);
         });
     }
-
     // Function to select a text box and deselect others
     function selectTextBox(textBox) {
         document.querySelectorAll('.text-box').forEach(box => {
@@ -218,15 +215,7 @@ document.addEventListener('DOMContentLoaded', function () {
         textBox.classList.add('selected');
     }
 
-    // Add event listener to the document to handle clicks outside of text boxes
-    document.addEventListener('click', function (event) {
-        const isClickInsideTextBox = event.target.closest('.text-box');
-        if (!isClickInsideTextBox) {
-            document.querySelectorAll('.text-box').forEach(box => {
-                box.classList.remove('selected');
-            });
-        }
-    });
+
 
     function addTextBox(textContent = 'New Text') {
         const newSlideId = `slide-${Date.now()}`;
@@ -431,84 +420,80 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    // Slide Order Editor
+
+   // Slide Order Editor
     function renderSlideList() {
         slideList.innerHTML = '';
-        fetchSlides().then(slidesData => {
-            slidesData.forEach((slide, index) => {
-                const listItem = document.createElement('li');
-                listItem.dataset.index = index;
+        slidesData.forEach((slide, index) => {
+            const listItem = document.createElement('li');
+            listItem.dataset.index = index;
 
-                const thumbnail = document.createElement('div');
-                thumbnail.className = 'thumbnail';
-                thumbnail.style.backgroundImage = `url('${slide.imageUrl}')`;
+            const thumbnail = document.createElement('div');
+            thumbnail.className = 'thumbnail';
+            thumbnail.style.backgroundImage = `url('${slide.imageUrl}')`;
 
-                const dragHandle = document.createElement('div');
-                dragHandle.className = 'drag-handle';
-                dragHandle.innerHTML = '&#9776;'; // Three horizontal lines
+            const dragHandle = document.createElement('div');
+            dragHandle.className = 'drag-handle';
+            dragHandle.innerHTML = '&#9776;'; // Three horizontal lines
 
-                const actions = document.createElement('div');
-                actions.className = 'actions';
+            const actions = document.createElement('div');
+            actions.className = 'actions';
 
-                const copyButton = document.createElement('button');
-                copyButton.className = 'icon copy';
-                copyButton.title = 'Copy';
-                copyButton.innerHTML = '<i class="fas fa-copy"></i>';
-                copyButton.addEventListener('click', () => copySlide(index));
+            const copyButton = document.createElement('button');
+            copyButton.className = 'icon copy';
+            copyButton.title = 'Copy';
+            copyButton.innerHTML = '<i class="fas fa-copy"></i>';
+            copyButton.addEventListener('click', () => copySlide(index));
 
-                const deleteButton = document.createElement('button');
-                deleteButton.className = 'icon delete';
-                deleteButton.title = 'Delete';
-                deleteButton.innerHTML = '<i class="fas fa-trash"></i>';
-                deleteButton.addEventListener('click', () => deleteSlide(index));
+            const deleteButton = document.createElement('button');
+            deleteButton.className = 'icon delete';
+            deleteButton.title = 'Delete';
+            deleteButton.innerHTML = '<i class="fas fa-trash"></i>';
+            deleteButton.addEventListener('click', () => deleteSlide(index));
 
-                actions.appendChild(copyButton);
-                actions.appendChild(deleteButton);
+            actions.appendChild(copyButton);
+            actions.appendChild(deleteButton);
 
-                listItem.appendChild(dragHandle);
-                listItem.appendChild(thumbnail);
-                listItem.appendChild(actions);
+            listItem.appendChild(dragHandle);
+            listItem.appendChild(thumbnail);
+            listItem.appendChild(actions);
 
-                slideList.appendChild(listItem);
-            });
+            slideList.appendChild(listItem);
+        });
 
-            // Make the list sortable
-            new Sortable(slideList, {
-                handle: '.drag-handle',
-                animation: 150,
-                onEnd: updateSlideOrder
-            });
+        // Make the list sortable
+        new Sortable(slideList, {
+            handle: '.drag-handle',
+            animation: 150,
+            onEnd: updateSlideOrder
         });
     }
 
     function updateSlideOrder() {
-        const newOrder = [];
         slideList.querySelectorAll('li').forEach((item, index) => {
             const slideIndex = item.dataset.index;
-            fetchSlides().then(slidesData => {
-                newOrder.push(slidesData[slideIndex]);
-            });
+            slidesData[slideIndex].order = index;
+            saveSlide(slidesData[slideIndex]);
         });
-
-        newOrder.forEach((slide, index) => {
-            saveSlide({ ...slide, order: index });
-        });
+        renderCarousel();
     }
 
     function copySlide(index) {
-        fetchSlides().then(slidesData => {
-            const newSlide = { ...slidesData[index], id: `slide-${Date.now()}` };
-            saveSlide(newSlide);
-            renderSlideList();
-        });
+        const newSlide = { ...slidesData[index], id: `slide-${Date.now()}` };
+        slidesData.push(newSlide);
+        saveSlide(newSlide);
+        renderSlideList();
+        renderCarousel();
     }
 
+
     function deleteSlide(index) {
-        fetchSlides().then(slidesData => {
-            deleteSlide(slidesData[index].id);
-            renderSlideList();
-        });
+        deleteSlide(slidesData[index].id);
+        slidesData.splice(index, 1);
+        renderSlideList();
+        renderCarousel();
     }
+
 
     saveOrderButton.addEventListener('click', () => {
         renderCarousel();
