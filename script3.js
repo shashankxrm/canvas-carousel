@@ -36,7 +36,9 @@ document.addEventListener('DOMContentLoaded', function () {
         const slidesCollection = collection(db, 'slides');
         const snapshot = await getDocs(slidesCollection);
         snapshot.forEach(doc => {
-            slidesData.push({ id: doc.id, ...doc.data() });
+            const slideData = { id: doc.id, ...doc.data() };
+            slideData.textBoxes = slideData.textBoxes || []; // Ensure textBoxes is initialized
+            slidesData.push(slideData);
         });
         return slidesData;
     }
@@ -59,10 +61,9 @@ document.addEventListener('DOMContentLoaded', function () {
         const slideId = `slide-${Date.now()}`; // Generate a unique ID for the slide
         const newSlide = {
             id: slideId,
-            text: 'New Text',
             imageUrl: './assets/default.jpg',  // Default background image
-            textBoxLeft: '50%',
-            textBoxTop: '50%'
+            textBoxes: [], // Initialize textBoxes as an empty array
+            order: slidesData.length // Set the order to the end of the list
         };
 
         // Save the new slide to Firestore
@@ -85,7 +86,7 @@ document.addEventListener('DOMContentLoaded', function () {
             slideElement.style.backgroundImage = `url('${slide.imageUrl}')`;
             slideElement.dataset.id = slide.id;
 
-            slide.textBoxes.forEach(textBoxData => {
+            (slide.textBoxes || []).forEach(textBoxData => {
                 const textBox = document.createElement('div');
                 textBox.className = 'text-box';
                 textBox.style.left = textBoxData.left;
