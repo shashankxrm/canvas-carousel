@@ -85,38 +85,45 @@ document.addEventListener('DOMContentLoaded', function () {
             slideElement.style.backgroundImage = `url('${slide.imageUrl}')`;
             slideElement.dataset.id = slide.id;
 
-            const textBox = document.createElement('div');
-            textBox.className = 'text-box';
-            textBox.style.left = slide.textBoxLeft || '50%';
-            textBox.style.top = slide.textBoxTop || '50%';
+            slide.textBoxes.forEach(textBoxData => {
+                const textBox = document.createElement('div');
+                textBox.className = 'text-box';
+                textBox.style.left = textBoxData.left;
+                textBox.style.top = textBoxData.top;
 
-            const draggableText = document.createElement('div');
-            draggableText.className = 'draggable-text';
-            draggableText.id = slide.id;
-            draggableText.textContent = slide.text;
+                const draggableText = document.createElement('div');
+                draggableText.className = 'draggable-text';
+                draggableText.textContent = textBoxData.text;
+                draggableText.style.fontSize = textBoxData.fontSize;
+                draggableText.style.fontFamily = textBoxData.fontFamily;
+                draggableText.style.fontWeight = textBoxData.fontWeight;
+                draggableText.style.fontStyle = textBoxData.fontStyle;
+                draggableText.style.textDecoration = textBoxData.textDecoration;
+                draggableText.style.color = textBoxData.color;
 
-            const deleteButton = document.createElement('button');
-            deleteButton.className = 'icon delete';
-            deleteButton.title = 'Delete';
-            deleteButton.innerHTML = '<i class="fas fa-trash"></i>';
-            deleteButton.addEventListener('click', function () {
-                deleteSlide(slide.id);
-                slideElement.remove();
+                const deleteButton = document.createElement('button');
+                deleteButton.className = 'icon delete';
+                deleteButton.title = 'Delete';
+                deleteButton.innerHTML = '<i class="fas fa-trash"></i>';
+                deleteButton.addEventListener('click', function () {
+                    textBox.remove();
+                    saveState(); // Save state after deletion
+                });
+
+                const copyButton = document.createElement('button');
+                copyButton.className = 'icon copy';
+                copyButton.title = 'Copy';
+                copyButton.innerHTML = '<i class="fas fa-copy"></i>';
+
+                textBox.appendChild(draggableText);
+                textBox.appendChild(deleteButton);
+                textBox.appendChild(copyButton);
+
+                slideElement.appendChild(textBox);
+                makeTextBoxDraggable(textBox);
             });
 
-            const copyButton = document.createElement('button');
-            copyButton.className = 'icon copy';
-            copyButton.title = 'Copy';
-            copyButton.innerHTML = '<i class="fas fa-copy"></i>';
-
-            textBox.appendChild(draggableText);
-            textBox.appendChild(deleteButton);
-            textBox.appendChild(copyButton);
-
-            slideElement.appendChild(textBox);
             carousel.appendChild(slideElement);
-            // Make the text box draggable
-            makeTextBoxDraggable(textBox);
         });
 
         // Reinitialize slides and other elements
@@ -221,7 +228,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
     function addTextBox(textContent = 'New Text') {
-        const newSlideId = `slide-${Date.now()}`;
         const textBox = document.createElement('div');
         textBox.classList.add('text-box');
 
@@ -255,15 +261,15 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // Append the text box to the currently active slide
         const activeSlideElement = document.querySelector('.slide.active');
-            if (activeSlideElement) {
-                activeSlideElement.appendChild(textBox);
-                makeTextBoxDraggable(textBox);
-                currentTextElement = newTextElement;
-                updateEditorInputs();
-                textInputContainer.style.display = 'block';
-                textInput.focus();
-                saveState(); // Save state after adding
-            }
+        if (activeSlideElement) {
+            activeSlideElement.appendChild(textBox);
+            makeTextBoxDraggable(textBox);
+            currentTextElement = newTextElement;
+            updateEditorInputs();
+            textInputContainer.style.display = 'block';
+            textInput.focus();
+            saveState(); // Save state after adding
+        }
     }
 
     // Text input changes
@@ -406,12 +412,25 @@ document.addEventListener('DOMContentLoaded', function () {
         const activeSlideElement = document.querySelector('.slide.active');
         const slideId = activeSlideElement.dataset.id;
         if (activeSlideElement) {
+            const textBoxes = Array.from(activeSlideElement.querySelectorAll('.text-box')).map(textBox => {
+                const draggableText = textBox.querySelector('.draggable-text');
+                return {
+                    text: draggableText.textContent,
+                    left: textBox.style.left,
+                    top: textBox.style.top,
+                    fontSize: draggableText.style.fontSize,
+                    fontFamily: draggableText.style.fontFamily,
+                    fontWeight: draggableText.style.fontWeight,
+                    fontStyle: draggableText.style.fontStyle,
+                    textDecoration: draggableText.style.textDecoration,
+                    color: draggableText.style.color
+                };
+            });
+
             const slideData = {
                 id: slideId,
-                text: activeSlideElement.querySelector('.draggable-text').textContent,
                 imageUrl: slidesData.find(slide => slide.id === slideId).imageUrl, // Preserve the imageUrl
-                textBoxLeft: activeSlideElement.querySelector('.text-box').style.left,
-                textBoxTop: activeSlideElement.querySelector('.text-box').style.top,
+                textBoxes: textBoxes,
                 order: slidesData.find(slide => slide.id === slideId).order // Preserve the order
             };
             saveSlide(slideData); // Save slide state to Firestore
