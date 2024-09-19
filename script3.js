@@ -75,6 +75,8 @@ document.addEventListener('DOMContentLoaded', function () {
     async function renderCarousel() {
         carousel.innerHTML = ''; // Clear existing slides
         const slidesData = await fetchSlides();
+        // Sort slidesData based on the order property
+        slidesData.sort((a, b) => a.order - b.order);
 
         slidesData.forEach(slide => {
             const slideElement = document.createElement('div');
@@ -470,11 +472,14 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function updateSlideOrder() {
+        const orderedSlides = [];
         slideList.querySelectorAll('li').forEach((item, index) => {
             const slideIndex = item.dataset.index;
             slidesData[slideIndex].order = index;
-            saveSlide(slidesData[slideIndex]);
+            orderedSlides.push(slidesData[slideIndex]);
+            saveSlide(slidesData[slideIndex]); // Save each slide with the new order
         });
+        slidesData = orderedSlides; // Update slidesData with the new order
         renderCarousel();
     }
 
