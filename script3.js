@@ -44,10 +44,13 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // Save slide data to Firestore
-    // Save slide data to Firestore
     async function saveSlide(slide) {
-        const slideRef = doc(db, 'slides', slide.id);
-        await setDoc(slideRef, slide);
+        try {
+            await setDoc(doc(db, 'slides', slide.id), slide);
+            console.log(`Slide ${slide.id} saved with order ${slide.order}`);
+        } catch (error) {
+            console.error('Error saving slide:', error);
+        }
     }
 
     // Delete slide from Firestore
@@ -492,6 +495,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Update the order of slides after rearranging
     async function updateSlideOrder() {
+        console.log('Before update:', slidesData.map(slide => slide.order)); // Log the order before update
+
         const orderedSlides = [];
         slideList.querySelectorAll('li').forEach((item, index) => {
             const slideIndex = item.dataset.index;
@@ -500,12 +505,21 @@ document.addEventListener('DOMContentLoaded', function () {
             orderedSlides.push(slide);
         });
 
+        console.log('Ordered slides:', orderedSlides); // Log the ordered slides array
+
         // Save each slide with the new order
         for (const slide of orderedSlides) {
             await saveSlide(slide);
         }
 
-        slidesData = orderedSlides; // Update slidesData with the new order
+        // Update slidesData with the new order
+        slidesData = orderedSlides.map((slide, index) => {
+            slide.order = index;
+            return slide;
+        });
+
+        console.log('After update:', slidesData.map(slide => slide.order)); // Log the order after update
+
         renderCarousel();
     }
 
