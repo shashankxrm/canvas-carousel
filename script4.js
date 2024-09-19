@@ -4,11 +4,9 @@ document.addEventListener('DOMContentLoaded', function () {
     let activeSlide = 0;
     let currentTextElement = null;
     let slidesData = [];
-    let undoStack = [];
-    let redoStack = [];
 
-   const carousel = document.getElementById('carousel');
-    const newSlideButton = document.getElementById('new-slide-button'); 
+    const carousel = document.getElementById('carousel');
+    const newSlideButton = document.getElementById('new-slide-button');
     const addTextButton = document.getElementById('add-text-button');
     const textInputContainer = document.getElementById('text-input-container');
     const textInput = document.getElementById('text-input');
@@ -42,7 +40,6 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // Save slide data to Firestore
-    // Save slide data to Firestore
     async function saveSlide(slide) {
         const slideRef = doc(db, 'slides', slide.id);
         await setDoc(slideRef, slide);
@@ -59,10 +56,19 @@ document.addEventListener('DOMContentLoaded', function () {
         const slideId = `slide-${Date.now()}`; // Generate a unique ID for the slide
         const newSlide = {
             id: slideId,
-            text: 'New Text',
             imageUrl: './assets/default.jpg',  // Default background image
-            textBoxLeft: '50%',
-            textBoxTop: '50%'
+            textBoxData: [{
+                left: '50%',
+                top: '50%',
+                text: 'New Text',
+                fontSize: '16px',
+                fontFamily: 'Arial',
+                color: '#000000',
+                fontWeight: 'normal',
+                fontStyle: 'normal',
+                textDecoration: 'none'
+            }],
+            order: slidesData.length // Ensure correct ordering
         };
 
         // Save the new slide to Firestore
@@ -72,105 +78,10 @@ document.addEventListener('DOMContentLoaded', function () {
         renderCarousel();
     }
 
-    // Render the carousel
-    async function renderCarousel() {
-        carousel.innerHTML = ''; // Clear existing slides
-        const slidesData = await fetchSlides();
-        // Sort slidesData based on the order property
-        slidesData.sort((a, b) => a.order - b.order);
-
-        slidesData.forEach(slide => {
-            const slideElement = document.createElement('div');
-            slideElement.className = 'slide';
-            slideElement.style.backgroundImage = `url('${slide.imageUrl}')`;
-            slideElement.dataset.id = slide.id;
-
-            const textBox = document.createElement('div');
-            textBox.className = 'text-box';
-            textBox.style.left = slide.textBoxLeft || '50%';
-            textBox.style.top = slide.textBoxTop || '50%';
-
-            const draggableText = document.createElement('div');
-            draggableText.className = 'draggable-text';
-            draggableText.id = slide.id;
-            draggableText.textContent = slide.text;
-
-            const deleteButton = document.createElement('button');
-            deleteButton.className = 'icon delete';
-            deleteButton.title = 'Delete';
-            deleteButton.innerHTML = '<i class="fas fa-trash"></i>';
-            deleteButton.addEventListener('click', function () {
-                deleteSlide(slide.id);
-                slideElement.remove();
-            });
-
-            const copyButton = document.createElement('button');
-            copyButton.className = 'icon copy';
-            copyButton.title = 'Copy';
-            copyButton.innerHTML = '<i class="fas fa-copy"></i>';
-
-            textBox.appendChild(draggableText);
-            textBox.appendChild(deleteButton);
-            textBox.appendChild(copyButton);
-
-            slideElement.appendChild(textBox);
-            carousel.appendChild(slideElement);
-            // Make the text box draggable
-            makeTextBoxDraggable(textBox);
-        });
-
-        // Reinitialize slides and other elements
-        initializeSlides();
-    }
-
-    // Function to initialize slides and other elements
-    function initializeSlides() {
-        const slides = document.querySelectorAll('.slide');
-        sliderDotsContainer.innerHTML = ''; // Clear existing dots
-
-        // Initial display of the first slide
-        if (slides.length > 0) {
-            slides[activeSlide].classList.add('active');
-        }
-
-        // Create slider dots
-        slides.forEach((slide, index) => {
-            const dot = document.createElement('div');
-            dot.classList.add('slider-dot');
-            if (index === activeSlide) {
-                dot.classList.add('active');
-            }
-            dot.addEventListener('click', () => showSlide(index));
-            sliderDotsContainer.appendChild(dot);
-        });
-        const sliderDots = document.querySelectorAll('.slider-dot');
-
-        // Function to select slide logic
-        function showSlide(index) {
-            if (slides.length > 0) {
-                slides[activeSlide].classList.remove('active');
-                sliderDots[activeSlide].classList.remove('active');
-                activeSlide = (index + slides.length) % slides.length;
-                slides[activeSlide].classList.add('active');
-                sliderDots[activeSlide].classList.add('active');
-                currentTextElement = null;
-                updateEditorInputs();
-            }
-        }
-
-        prevSlideButton.addEventListener('click', function () {
-            showSlide(activeSlide - 1);
-        });
-
-        nextSlideButton.addEventListener('click', function () {
-            showSlide(activeSlide + 1);
-        });
-    }
-
-   // Make a text box draggable
+    // Make a text box draggable
     function makeTextBoxDraggable(textBox) {
         textBox.addEventListener('mousedown', function (e) {
-            e.preventDefault();
+            e.preventDefault(); // Prevent default behavior
 
             let shiftX = e.clientX - textBox.getBoundingClientRect().left;
             let shiftY = e.clientY - textBox.getBoundingClientRect().top;
@@ -210,7 +121,8 @@ document.addEventListener('DOMContentLoaded', function () {
             selectTextBox(textBox);
         });
     }
-    // Function to select a text box and deselect others
+
+    // Select a text box
     function selectTextBox(textBox) {
         document.querySelectorAll('.text-box').forEach(box => {
             box.classList.remove('selected');
@@ -218,52 +130,151 @@ document.addEventListener('DOMContentLoaded', function () {
         textBox.classList.add('selected');
     }
 
+    // Render the carousel
+    async function renderCarousel() {
+        carousel.innerHTML = ''; // Clear existing slides
+        slidesData = await fetchSlides();
+        slidesData.sort((a, b) => a.order - b.order); // Ensure slides are ordered correctly
 
+        slidesData.forEach(slide => {
+            const slideElement = document.createElement('div');
+            slideElement.className = 'slide';
+            slideElement.style.backgroundImage = `url('${slide.imageUrl}')`;
+            slideElement.dataset.id = slide.id;
 
+            // Fallback to an empty array if textBoxData is undefined
+            const textBoxDataArray = slide.textBoxData || [];
+
+            // Loop through textBoxData to recreate all textboxes
+            textBoxDataArray.forEach(textBoxData => {
+                const textBox = document.createElement('div');
+                textBox.className = 'text-box';
+                textBox.style.left = textBoxData.left;
+                textBox.style.top = textBoxData.top;
+
+                const draggableText = document.createElement('div');
+                draggableText.className = 'draggable-text';
+                draggableText.textContent = textBoxData.text;
+                draggableText.style.fontSize = textBoxData.fontSize;
+                draggableText.style.fontFamily = textBoxData.fontFamily;
+                draggableText.style.color = textBoxData.color;
+                draggableText.style.fontWeight = textBoxData.fontWeight;
+                draggableText.style.fontStyle = textBoxData.fontStyle;
+                draggableText.style.textDecoration = textBoxData.textDecoration;
+
+                textBox.appendChild(draggableText);
+                makeTextBoxDraggable(textBox);
+                slideElement.appendChild(textBox);
+            });
+
+            carousel.appendChild(slideElement);
+        });
+        initializeSlides();
+    }
+
+    // Initialize slides and other elements
+    function initializeSlides() {
+        const slides = document.querySelectorAll('.slide');
+        sliderDotsContainer.innerHTML = ''; // Clear existing dots
+
+        // Initial display of the first slide
+        if (slides.length > 0) {
+            slides[activeSlide].classList.add('active');
+        }
+
+        // Create slider dots
+        slides.forEach((slide, index) => {
+            const dot = document.createElement('div');
+            dot.classList.add('slider-dot');
+            if (index === activeSlide) {
+                dot.classList.add('active');
+            }
+            dot.addEventListener('click', () => showSlide(index));
+            sliderDotsContainer.appendChild(dot);
+        });
+        const sliderDots = document.querySelectorAll('.slider-dot');
+
+        // Select slide logic
+        function showSlide(index) {
+            if (slides.length > 0) {
+                slides[activeSlide].classList.remove('active');
+                sliderDots[activeSlide].classList.remove('active');
+                activeSlide = (index + slides.length) % slides.length;
+                slides[activeSlide].classList.add('active');
+                sliderDots[activeSlide].classList.add('active');
+                currentTextElement = null;
+                updateEditorInputs();
+            }
+        }
+
+        prevSlideButton.addEventListener('click', function () {
+            showSlide(activeSlide - 1);
+        });
+
+        nextSlideButton.addEventListener('click', function () {
+            showSlide(activeSlide + 1);
+        });
+    }
+
+    // Update editor inputs based on the selected text element
+    function updateEditorInputs() {
+        if (currentTextElement) {
+            textInput.value = currentTextElement.textContent;
+            fontSizeDisplay.textContent = parseInt(window.getComputedStyle(currentTextElement).fontSize);
+            colorInput.value = window.getComputedStyle(currentTextElement).color;
+        }
+    }
+
+    // Save the current state of the slide
+    function saveState() {
+        const activeSlideElement = document.querySelector('.slide.active');
+        const slideId = activeSlideElement.dataset.id;
+        const textBoxes = activeSlideElement.querySelectorAll('.text-box');
+
+        let slideData = {
+            id: slideId,
+            imageUrl: activeSlideElement.style.backgroundImage,
+            textBoxData: [],  // Array to store data of all textboxes
+            order: slidesData.find(slide => slide.id === slideId).order
+        };
+
+        // Loop through each textbox and capture relevant data
+        textBoxes.forEach(textBox => {
+            const draggableText = textBox.querySelector('.draggable-text');
+            const textBoxData = {
+                left: textBox.style.left,
+                top: textBox.style.top,
+                text: draggableText.textContent,
+                fontSize: window.getComputedStyle(draggableText).fontSize,
+                fontFamily: window.getComputedStyle(draggableText).fontFamily,
+                color: window.getComputedStyle(draggableText).color,
+                fontWeight: window.getComputedStyle(draggableText).fontWeight,
+                fontStyle: window.getComputedStyle(draggableText).fontStyle,
+                textDecoration: window.getComputedStyle(draggableText).textDecoration
+            };
+            slideData.textBoxData.push(textBoxData);
+        });
+
+        saveSlide(slideData);  // Save updated slide data to the DB
+    }
+
+    // Add a new text box to the slide
     function addTextBox(textContent = 'New Text') {
-        const newSlideId = `slide-${Date.now()}`;
         const textBox = document.createElement('div');
         textBox.classList.add('text-box');
-
         const newTextElement = document.createElement('div');
         newTextElement.classList.add('draggable-text');
         newTextElement.textContent = textContent;
+
         textBox.appendChild(newTextElement);
+        document.querySelector('.slide.active').appendChild(textBox);
+        makeTextBoxDraggable(textBox);
 
-        const deleteButton = document.createElement('button');
-        deleteButton.classList.add('icon', 'delete');
-        deleteButton.innerHTML = '<i class="fas fa-trash"></i>';
-        deleteButton.addEventListener('click', function () {
-            textBox.remove();
-            saveState(); // Save state after deletion
-        });
-        textBox.appendChild(deleteButton);
+        // Update currentTextElement and editor inputs
+        currentTextElement = newTextElement;
+        updateEditorInputs();
 
-        const copyButton = document.createElement('button');
-        copyButton.classList.add('icon', 'copy');
-        copyButton.innerHTML = '<i class="fas fa-copy"></i>';
-        copyButton.addEventListener('click', function () {
-            navigator.clipboard.writeText(newTextElement.textContent);
-        });
-        textBox.appendChild(copyButton);
-
-        // Set initial position at the center
-        textBox.style.left = '50%';
-        textBox.style.top = '50%';
-        textBox.style.position = 'absolute';
-        textBox.style.margin = '0';
-
-        // Append the text box to the currently active slide
-        const activeSlideElement = document.querySelector('.slide.active');
-            if (activeSlideElement) {
-                activeSlideElement.appendChild(textBox);
-                makeTextBoxDraggable(textBox);
-                currentTextElement = newTextElement;
-                updateEditorInputs();
-                textInputContainer.style.display = 'block';
-                textInput.focus();
-                saveState(); // Save state after adding
-            }
+        saveState();  // Save the state immediately after adding
     }
 
     // Text input changes
@@ -319,13 +330,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // Bold text
     boldButton.addEventListener('click', function () {
         if (currentTextElement) {
-            if (currentTextElement.style.fontWeight === 'bold') {
-                currentTextElement.style.fontWeight = 'normal';
-                boldButton.classList.remove('active');
-            } else {
-                currentTextElement.style.fontWeight = 'bold';
-                boldButton.classList.add('active');
-            }
+            currentTextElement.style.fontWeight = currentTextElement.style.fontWeight === 'bold' ? 'normal' : 'bold';
             saveState(); // Save state after bold change
         }
     });
@@ -333,13 +338,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // Italic text
     italicButton.addEventListener('click', function () {
         if (currentTextElement) {
-            if (currentTextElement.style.fontStyle === 'italic') {
-                currentTextElement.style.fontStyle = 'normal';
-                italicButton.classList.remove('active');
-            } else {
-                currentTextElement.style.fontStyle = 'italic';
-                italicButton.classList.add('active');
-            }
+            currentTextElement.style.fontStyle = currentTextElement.style.fontStyle === 'italic' ? 'normal' : 'italic';
             saveState(); // Save state after italic change
         }
     });
@@ -347,13 +346,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // Underline text
     underlineButton.addEventListener('click', function () {
         if (currentTextElement) {
-            if (currentTextElement.style.textDecoration === 'underline') {
-                currentTextElement.style.textDecoration = 'none';
-                underlineButton.classList.remove('active');
-            } else {
-                currentTextElement.style.textDecoration = 'underline';
-                underlineButton.classList.add('active');
-            }
+            currentTextElement.style.textDecoration = currentTextElement.style.textDecoration === 'underline' ? 'none' : 'underline';
             saveState(); // Save state after underline change
         }
     });
@@ -361,13 +354,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // Strikethrough text
     strikethroughButton.addEventListener('click', function () {
         if (currentTextElement) {
-            if (currentTextElement.style.textDecoration === 'line-through') {
-                currentTextElement.style.textDecoration = 'none';
-                strikethroughButton.classList.remove('active');
-            } else {
-                currentTextElement.style.textDecoration = 'line-through';
-                strikethroughButton.classList.add('active');
-            }
+            currentTextElement.style.textDecoration = currentTextElement.style.textDecoration === 'line-through' ? 'none' : 'line-through';
             saveState(); // Save state after strikethrough change
         }
     });
@@ -380,49 +367,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
-    // Update editor inputs based on the selected text element
-    function updateEditorInputs() {
-        if (currentTextElement) {
-            textInput.value = currentTextElement.textContent;
-            fontSizeDisplay.textContent = parseInt(window.getComputedStyle(currentTextElement).fontSize);
-            fontSelect.value = "";
-            colorInput.value = window.getComputedStyle(currentTextElement).color;
-
-            // Update button active states
-            boldButton.classList.toggle('active', currentTextElement.style.fontWeight === 'bold');
-            italicButton.classList.toggle('active', currentTextElement.style.fontStyle === 'italic');
-            underlineButton.classList.toggle('active', currentTextElement.style.textDecoration === 'underline');
-            strikethroughButton.classList.toggle('active', currentTextElement.style.textDecoration === 'line-through');
-
-            textInputContainer.style.display = 'block';
-        } else {
-            textInputContainer.style.display = 'none';
-            fontSelect.value = "";  // Reset to placeholder
-        }
-    }
-
-    // Save the current state for undo/redo
-    function saveState() {
-        const activeSlideElement = document.querySelector('.slide.active');
-        const slideId = activeSlideElement.dataset.id;
-        if (activeSlideElement) {
-            const slideData = {
-                id: slideId,
-                text: activeSlideElement.querySelector('.draggable-text').textContent,
-                imageUrl: slidesData.find(slide => slide.id === slideId).imageUrl, // Preserve the imageUrl
-                textBoxLeft: activeSlideElement.querySelector('.text-box').style.left,
-                textBoxTop: activeSlideElement.querySelector('.text-box').style.top,
-                order: slidesData.find(slide => slide.id === slideId).order // Preserve the order
-            };
-            saveSlide(slideData); // Save slide state to Firestore
-            // Update slidesData with the latest state
-            const slideIndex = slidesData.findIndex(slide => slide.id === slideId);
-            slidesData[slideIndex] = slideData;
-        }
-    }
-
-
-   // Slide Order Editor
+    // Slide Order Editor
     function renderSlideList() {
         slideList.innerHTML = '';
         slidesData.forEach((slide, index) => {
@@ -483,20 +428,19 @@ document.addEventListener('DOMContentLoaded', function () {
         // Save each slide with the new order
         for (const slide of orderedSlides) {
             await saveSlide(slide);
-        }
-
-        slidesData = orderedSlides; // Update slidesData with the new order
-        renderCarousel();
     }
 
+    slidesData = orderedSlides; // Update slidesData with the new order
+    renderCarousel();
+}
+
     function copySlide(index) {
-        const newSlide = { ...slidesData[index], id: `slide-${Date.now()}` };
+        const newSlide = { ...slidesData[index], id: `slide-${Date.now()}`, order: slidesData.length };
         slidesData.push(newSlide);
         saveSlide(newSlide);
         renderSlideList();
         renderCarousel();
     }
-
 
     function deleteSlide(index) {
         deleteSlide(slidesData[index].id);
@@ -505,9 +449,8 @@ document.addEventListener('DOMContentLoaded', function () {
         renderCarousel();
     }
 
-
-    saveOrderButton.addEventListener('click', async () => {
-        await updateSlideOrder(); // Ensure the order is updated and saved
+    saveOrderButton.addEventListener('click', () => {
+        renderCarousel();
         slideOrderEditorDialog.style.display = 'none';
     });
 
@@ -519,13 +462,6 @@ document.addEventListener('DOMContentLoaded', function () {
     openSlideOrderEditorButton.addEventListener('click', () => {
         slideOrderEditorDialog.style.display = 'flex';
         renderSlideList();
-    });
-
-    // Close the dialog when clicking outside of it
-    slideOrderEditorDialog.addEventListener('click', (event) => {
-        if (event.target === slideOrderEditorDialog) {
-            slideOrderEditorDialog.style.display = 'none';
-        }
     });
 
     // Event listener for adding a new slide
