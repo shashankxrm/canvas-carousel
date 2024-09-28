@@ -15,6 +15,8 @@ document.addEventListener('DOMContentLoaded', function () {
     const fontSizeDisplay = document.getElementById('font-size-display');
     const decrementFontSizeButton = document.getElementById('decrement-font-size');
     const incrementFontSizeButton = document.getElementById('increment-font-size');
+    const undoButton = document.getElementById('undo-button');
+    const redoButton = document.getElementById('redo-button');
     const fontSelect = document.getElementById('font-select');
     const prevSlideButton = document.getElementById('prev-slide');
     const nextSlideButton = document.getElementById('next-slide');
